@@ -15,6 +15,8 @@ void ModuleTaskManager::threadMain()
 
 		if (scheduledTasks.empty()) {
 			e.wait(lock);
+			if (exitFlag)
+				break;
 		}
 		else {
 			Task* to_execute = scheduledTasks.front();
@@ -55,7 +57,10 @@ bool ModuleTaskManager::cleanUp()
 {
 	// TODO 5: Notify all threads to finish and join them
 
-	for (int i = 0; i < MAX_THREADS; i++)
+
+	exitFlag = true;
+	e.notify_all();
+	for (int i = 0; i < MAX_THREADS; i++) 
 		threads[i].join();
 
 	return true;
