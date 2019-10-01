@@ -22,9 +22,11 @@ void ModuleTaskManager::threadMain()
 			Task* to_execute = scheduledTasks.front();
 			scheduledTasks.pop();
 
+
 			to_execute->execute();
 
 			finishedTasks.push(to_execute);
+
 		}
 
 	}
@@ -71,7 +73,9 @@ void ModuleTaskManager::scheduleTask(Task *task, Module *owner)
 	task->owner = owner;
 
 	// TODO 2: Insert the task into scheduledTasks so it is executed by some thread
-
-	scheduledTasks.push(task);
-	e.notify_one();
+	{
+		std::unique_lock<std::mutex> lock(mtx);
+		scheduledTasks.push(task);
+		e.notify_one();
+	}
 }
