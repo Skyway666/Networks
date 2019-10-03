@@ -27,6 +27,7 @@ void printWSErrorAndExit(const char *msg)
 
 void server(int port)
 {
+
 	// TODO-1: Winsock init
 	WSADATA wsadata;
 	if (WSAStartup(MAKEWORD(2, 2), &wsadata) == SOCKET_ERROR)
@@ -45,7 +46,7 @@ void server(int port)
 	address.sin_port = htons(SERVER_PORT);
 	address.sin_addr.S_un.S_addr = INADDR_ANY;
 
-	// TODO-3.2: Enable the adress to reuse ports or IP that aren't properly closed
+	// TODO-3.2: Enable the socket to reuse ports or IP that aren't properly closed
 	int enable = 1;
 	if(setsockopt(udp_socket, SOL_SOCKET, SO_REUSEADDR, (const char*)&enable, sizeof(int)))
 		printWSErrorAndExit("Error setting up socket to reuse IP and Port");
@@ -63,11 +64,11 @@ void server(int port)
 		// - Answer with a 'pong' packet
 		// - Control errors in both cases
 
-		char* recieved_message = new char[100];
+		char recieved_message[100];
 		sockaddr_in from;
 		int size_of_address = sizeof(sockaddr_in);
 		if (recvfrom(udp_socket, recieved_message, 100, 0, (sockaddr*)&from, &size_of_address) == SOCKET_ERROR)
-			printWSErrorAndExit("Error while receiving message from server");
+			printWSErrorAndExit("Error while receiving message from client");
 		else {
 			fprintf(stderr, "message received by server: %s", recieved_message);
 			Sleep(500);

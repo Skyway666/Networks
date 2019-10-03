@@ -65,11 +65,11 @@ void client(const char *serverAddrStr, int port)
 			printWSErrorAndExit("Error while sending message from client");
 
 
-		char* recieved_message = new char[100];
+		char recieved_message[100];
 		sockaddr_in from;
 		int size_of_address = sizeof(sockaddr_in);
 		if (recvfrom(udp_socket, recieved_message, 100, 0, (sockaddr*)&from, &size_of_address) == SOCKET_ERROR) 
-			printWSErrorAndExit("Error while receiving message from client");
+			printWSErrorAndExit("Error while receiving message from server");
 		else{
 			fprintf(stderr, "message received by client: %s", recieved_message);
 			Sleep(500);

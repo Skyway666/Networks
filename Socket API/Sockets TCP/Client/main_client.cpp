@@ -64,11 +64,20 @@ void client(const char *serverAddrStr, int port)
 			printWSErrorAndExit("Error while sending message from client");
 
 
-		char* recieved_message = new char[100];
-		if(recv(tcp_socket, recieved_message, 100, 0) == SOCKET_ERROR)
+		char recieved_message[100];
+		auto received_bytes = recv(tcp_socket, recieved_message, 100, 0);
+
+		// Error
+		if (received_bytes == SOCKET_ERROR)
 			printWSErrorAndExit("Error while receiving message from server");
-
-
+		// Remote socket notifies disconection
+		else if (received_bytes == 0)
+			break; 
+		// Message received correctly
+		else {
+			fprintf(stderr, "message received by client: %s", recieved_message);
+			Sleep(500);
+		}
 	}
 
 	// TODO-5: Close socket
