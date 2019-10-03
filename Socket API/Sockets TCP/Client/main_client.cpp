@@ -29,13 +29,28 @@ void printWSErrorAndExit(const char *msg)
 
 void client(const char *serverAddrStr, int port)
 {
+	// TODO-0:  Wait for the server to be ready
+	Sleep(1000); 
+
 	// TODO-1: Winsock init
+	WSADATA wsadata;
+	if (WSAStartup(MAKEWORD(2, 2), &wsadata) == SOCKET_ERROR)
+		printWSErrorAndExit("Error when initializing socket library");
 
 	// TODO-2: Create socket (IPv4, stream, TCP)
+	SOCKET tcp_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (tcp_socket == INVALID_SOCKET)
+		printWSErrorAndExit("Error while creating socket");
 
 	// TODO-3: Create an address object with the server address
+	sockaddr_in address;
+	address.sin_family = AF_INET; //IPv4
+	address.sin_port = htons(SERVER_PORT);
+	inet_pton(AF_INET, SERVER_ADDRESS, &address.sin_addr);
 
 	// TODO-4: Connect to server
+	if(connect(tcp_socket, (const sockaddr*) &address, sizeof(sockaddr_in)) == SOCKET_ERROR)
+		printWSErrorAndExit("Error while connecting to server");
 
 	for (int i = 0; i < 5; ++i)
 	{
@@ -44,11 +59,25 @@ void client(const char *serverAddrStr, int port)
 		// - Receive 'pong' packet from the server
 		// - Control errors in both cases
 		// - Control graceful disconnection from the server (recv receiving 0 bytes)
+		const char* message = "ping";
+		if(send(tcp_socket, message, sizeof(message), 0) == SOCKET_ERROR)
+			printWSErrorAndExit("Error while sending message from client");
+
+
+		char* recieved_message = new char[100];
+		if(recv(tcp_socket, recieved_message, 100, 0) == SOCKET_ERROR)
+			printWSErrorAndExit("Error while receiving message from server");
+
+
 	}
 
-	// TODO-6: Close socket
+	// TODO-5: Close socket
+	if (closesocket(tcp_socket) == SOCKET_ERROR)
+		printWSErrorAndExit("Error while closing socket");
 
-	// TODO-7: Winsock shutdown
+	// TODO-6: Winsock shutdown
+	if (WSACleanup() == SOCKET_ERROR)
+		printWSErrorAndExit("Error while shutting down library");
 }
 
 int main(int argc, char **argv)

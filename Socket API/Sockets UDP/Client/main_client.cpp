@@ -29,6 +29,9 @@ void printWSErrorAndExit(const char *msg)
 
 void client(const char *serverAddrStr, int port)
 {
+	// TODO-0:  Wait for the server to be ready
+	Sleep(1000);
+
 	// TODO-1: Winsock init
 	WSADATA wsadata;
 	if (WSAStartup(MAKEWORD(2, 2), &wsadata) == SOCKET_ERROR) 
@@ -47,6 +50,9 @@ void client(const char *serverAddrStr, int port)
 	address.sin_family = AF_INET; //IPv4
 	address.sin_port = htons(SERVER_PORT);
 	inet_pton(AF_INET, SERVER_ADDRESS, &address.sin_addr);
+
+
+	
 
 	while (true)
 	{
