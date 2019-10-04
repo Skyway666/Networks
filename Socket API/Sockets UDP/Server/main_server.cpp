@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <string>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -70,11 +71,12 @@ void server(int port)
 		if (recvfrom(udp_socket, recieved_message, 100, 0, (sockaddr*)&from, &size_of_address) == SOCKET_ERROR)
 			printWSErrorAndExit("Error while receiving message from client");
 		else {
-			fprintf(stderr, "message received by server: %s", recieved_message);
+			fprintf(stderr, "message received by server: %s \n\n", recieved_message);
 			Sleep(500);
 		}
 
-		const char* message = "pong";
+		char message[100];
+		std::cin.getline(message, sizeof(message));
 		if (sendto(udp_socket, message, sizeof(message), 0, (const sockaddr*)&from, sizeof(from)) == SOCKET_ERROR)
 			printWSErrorAndExit("Error while sending message from server");
 
