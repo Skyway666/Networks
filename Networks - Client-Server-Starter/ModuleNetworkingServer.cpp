@@ -13,27 +13,26 @@ bool ModuleNetworkingServer::start(int port)
 	// - Create the listenSocket
 	WSADATA wsadata;
 	if (WSAStartup(MAKEWORD(2, 2), &wsadata) == SOCKET_ERROR)
-		printWSErrorAndExit("Error when initializing socket library");
+		reportError("Error when initializing socket library");
 
 	listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (listenSocket == INVALID_SOCKET)
-		printWSErrorAndExit("Error while creating socket");
+		reportError("Error while creating socket");
 	// - Set address reuse
 	int enable = 1;
 	if (setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&enable, sizeof(int)))
-		printWSErrorAndExit("Error setting up socket to reuse IP and Port");
+		reportError("Error setting up socket to reuse IP and Port");
 	// - Bind the socket to a local interface
-	sockaddr_in address;
 	address.sin_family = AF_INET; //IPv4
 	address.sin_port = htons(port);
 	address.sin_addr.S_un.S_addr = INADDR_ANY;
 
 	if (bind(listenSocket, (const sockaddr*)&address, sizeof(address)) == SOCKET_ERROR)
-		printWSErrorAndExit("Error while binding socket to local adress");
+		reportError("Error while binding socket to local adress");
 	// - Enter in listen mode
 
 	if (listen(listenSocket, 5) == SOCKET_ERROR)
-		printWSErrorAndExit("Error while setting socket to listen (max 5)");
+		reportError("Error while setting socket to listen (max 5)");
 	// - Add the listenSocket to the managed list of sockets using addSocket()
 	addSocket(listenSocket);
 

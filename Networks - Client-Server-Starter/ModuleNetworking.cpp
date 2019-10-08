@@ -1,6 +1,7 @@
 #include "Networks.h"
 #include "ModuleNetworking.h"
 
+#include <list>
 
 static uint8 NumModulesUsingWinsock = 0;
 
@@ -61,7 +62,26 @@ bool ModuleNetworking::preUpdate()
 	const uint32 incomingDataBufferSize = Kilobytes(1);
 	byte incomingDataBuffer[incomingDataBufferSize];
 
+
 	// TODO(jesus): select those sockets that have a read operation available
+
+	// Initialize socket set
+	fd_set readSet;
+	FD_ZERO(&readSet);
+	// Fill socket set with the sockets in the list
+	for (auto s:sockets) {
+		FD_SET(s, &readSet);
+	}
+
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 0;
+
+	if(select(0, &readSet, nullptr, nullptr, &timeout) == SOCKET_ERROR)
+		reportError("Error when selecting sockets");
+
+	
+	std::list<SOCKET> disconnectedSockets;
 
 	// TODO(jesus): for those sockets selected, check wheter or not they are
 	// a listen socket or a standard socket and perform the corresponding
@@ -73,14 +93,48 @@ bool ModuleNetworking::preUpdate()
 	// On recv() success, communicate the incoming data received to the
 	// subclass (use the callback onSocketReceivedData()).
 
-	// TODO(jesus): handle disconnections. Remember that a socket has been
-	// disconnected from its remote end either when recv() returned 0,
-	// or when it generated some errors such as ECONNRESET.
-	// Communicate detected disconnections to the subclass using the callback
-	// onSocketDisconnected().
+	for (auto s : sockets) {
+		if (FD_ISSET(s, &readSet)) {
+			if (isListenSocket(s)) { // Listener, time to connect
+				int size_of_address = sizeof(address);
+				SOCKET connected_socket = accept(s, (sockaddr*)&address, &size_of_address);
+				if(connected_socket == SOCKET_ERROR)
+					reportError("Error while connecting to client");
+				else {
+					onSocketConnected(connected_socket, address);
+				}
 
+			}
+			else { // Client, time to receive
+
+				// TODO(jesus): handle disconnections. Remember that a socket has been
+				// disconnected from its remote end either when recv() returned 0,
+				// or when it generated some errors such as ECONNRESET.
+				// Communicate detected disconnections to the subclass using the callback
+				// onSocketDisconnected().
+
+				auto received_bytes = recv(s, (char*)incomingDataBuffer, 100, 0);
+
+				// Error
+				if (received_bytes == SOCKET_ERROR)
+					reportError("Error while receiving message from server");
+				// Remote socket notifies disconection
+				else if (received_bytes == 0 || received_bytes == ECONNRESET) {
+					onSocketDisconnected(s);
+					disconnectedSockets.push_back(s);
+				}
+				// Message received correctly
+				else 
+					onSocketReceivedData(s, incomingDataBuffer);
+			}
+
+		}
+	}
 	// TODO(jesus): Finally, remove all disconnected sockets from the list
 	// of managed sockets.
+	for (auto disc_sock : disconnectedSockets)
+		sockets.erase(std::remove(sockets.begin(), sockets.end(), disc_sock), sockets.end());
+	
 
 	return true;
 }
