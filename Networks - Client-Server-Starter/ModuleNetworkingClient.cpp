@@ -7,9 +7,23 @@ bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPor
 
 	// TODO(jesus): TCP connection stuff
 	// - Create the socket
+	WSADATA wsadata;
+	if (WSAStartup(MAKEWORD(2, 2), &wsadata) == SOCKET_ERROR)
+		printWSErrorAndExit("Error when initializing socket library");
+
+	clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+	if (clientSocket == INVALID_SOCKET)
+		printWSErrorAndExit("Error while creating socket");
 	// - Create the remote address object
+	sockaddr_in address;
+	address.sin_family = AF_INET; //IPv4
+	address.sin_port = htons(serverPort);
+	inet_pton(AF_INET, serverAddressStr, &address.sin_addr);
 	// - Connect to the remote address
+	if (connect(clientSocket, (const sockaddr*)&address, sizeof(sockaddr_in)) == SOCKET_ERROR)
+		printWSErrorAndExit("Error while connecting to server");
 	// - Add the created socket to the managed list of sockets using addSocket()
+	addSocket(clientSocket);
 
 	// If everything was ok... change the state
 	state = ClientState::Start;
@@ -27,6 +41,8 @@ bool ModuleNetworkingClient::update()
 	if (state == ClientState::Start)
 	{
 		// TODO(jesus): Send the player name to the server
+		if (send(clientSocket, playerName.c_str(), sizeof(playerName.c_str()), 0) == SOCKET_ERROR)
+			printWSErrorAndExit("Error while sending message from client");
 	}
 
 	return true;
