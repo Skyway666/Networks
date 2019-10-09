@@ -102,6 +102,7 @@ bool ModuleNetworking::preUpdate()
 					reportError("Error while connecting to client");
 				else {
 					onSocketConnected(connected_socket, address);
+					addSocket(connected_socket);
 				}
 
 			}
