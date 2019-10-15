@@ -1,4 +1,6 @@
+#include "MemoryStream.cpp"
 #include "stdafx.h"
+
 
 #include "Networks.h"
 
@@ -21,3 +23,4 @@
 #include "ScreenGame.cpp"
 #include "Application.cpp"
 #include "main.cpp"
+

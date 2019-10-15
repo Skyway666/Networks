@@ -35,7 +35,7 @@ private:
 
 	void onSocketConnected(SOCKET socket, const sockaddr_in &socketAddress) override;
 
-	void onSocketReceivedData(SOCKET socket, byte * data) override;
+	void onSocketReceivedData(SOCKET socket, InputMemoryStream & data) override;
 
 	void onSocketDisconnected(SOCKET socket) override;
 

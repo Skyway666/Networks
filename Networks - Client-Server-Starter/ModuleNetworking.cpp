@@ -114,7 +114,8 @@ bool ModuleNetworking::preUpdate()
 				// Communicate detected disconnections to the subclass using the callback
 				// onSocketDisconnected().
 
-				auto received_bytes = recv(s, (char*)incomingDataBuffer, 100, 0);
+				InputMemoryStream packet;
+				auto received_bytes = recv(s, packet.GetBufferPtr(), packet.GetCapacity(), 0);
 
 				// Error
 				if (received_bytes == SOCKET_ERROR)
@@ -125,8 +126,11 @@ bool ModuleNetworking::preUpdate()
 					disconnectedSockets.push_back(s);
 				}
 				// Message received correctly
-				else 
-					onSocketReceivedData(s, incomingDataBuffer);
+				else {
+					packet.SetSize((uint32)received_bytes);
+					onSocketReceivedData(s, packet);
+				}
+					
 			}
 
 		}
@@ -155,6 +159,15 @@ bool ModuleNetworking::cleanUp()
 		}
 	}
 
+	return true;
+}
+
+bool ModuleNetworking::sendPacket(const OutputMemoryStream & packet, SOCKET socket) {
+
+	if (send(socket, packet.GetBufferPtr(), packet.GetSize(), 0) == SOCKET_ERROR) {
+		reportError("Send");
+		return false;
+	}
 	return true;
 }
 
