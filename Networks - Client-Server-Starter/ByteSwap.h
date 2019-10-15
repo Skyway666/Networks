@@ -1,6 +1,5 @@
 #pragma once
 
-
 // Swap a word of 2 bytes
 inline uint16 ByteSwap2(uint16 inData)
 {

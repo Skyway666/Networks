@@ -41,12 +41,17 @@ bool ModuleNetworkingClient::update()
 	if (state == ClientState::Start)
 	{
 		// TODO(jesus): Send the player name to the server
-		char player_name[100];
-		strcpy_s(player_name, playerName.c_str());
-		if (send(clientSocket, player_name, sizeof(player_name), 0) == SOCKET_ERROR)
-			reportError("Error while sending message from client");
+		OutputMemoryStream packet;
+		packet << ClientMessage::Hello;
+		packet << playerName;
 
 		state = ClientState::Logging;
+
+		if (sendPacket(packet, clientSocket) == SOCKET_ERROR){
+			reportError("Error while sending message from client");
+			state = ClientState::Stopped;
+			disconnect();
+		}
 	}
 
 	return true;
