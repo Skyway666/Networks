@@ -127,15 +127,18 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 			data >> playerName;
 			for (auto &connectedSocket : connectedSockets) {
 				if (connectedSocket.socket == socket) {
-					connectedSocket.playerName = playerName;
 
-					// Send welcome message!
+					// Set player name
+					connectedSocket.playerName = playerName;
+					// Store welcome message in server
+					std::string welcome_message = "\n'''\n" + playerName + " entered the chat!!\n" + "'''";
+					messages.push_back(Message(welcome_message, "Server"));
+
+					// Send welcome message to clients
 					OutputMemoryStream out;
-					std::string welcome_message = "Welcome to the chat " + playerName + "!!";
 					out << ServerMessage::Welcome;
 					out << welcome_message;
-					messages.push_back(Message(welcome_message, playerName));
-					sendPacket(out, connectedSocket.socket);
+					sendPacketToAllUsers(connectedSocket.socket, out);
 				}
 			}
 		}
@@ -150,6 +153,13 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 				if (connectedSocket.socket == socket) {
 					// Receive message
 					messages.push_back(Message(message, connectedSocket.playerName));
+
+					OutputMemoryStream out;
+					out << ServerMessage::UserMessage;
+					out << connectedSocket.playerName;
+					out << message;
+					// Resend to all users
+					sendPacketToAllUsers(connectedSocket.socket, out);
 				}
 			}
 		}
@@ -170,5 +180,11 @@ void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)
 			break;
 		}
 	}
+}
+
+void ModuleNetworkingServer::sendPacketToAllUsers(SOCKET socket, OutputMemoryStream & data) {
+	for (auto &users : connectedSockets)
+		if (users.socket != socket && !isListenSocket(users.socket))
+			sendPacket(data, users.socket);
 }
 

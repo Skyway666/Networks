@@ -36,6 +36,8 @@ private:
 
 	void onSocketDisconnected(SOCKET socket) override;
 
+	void sendServerMessage(char* message, int size);
+
 
 
 	//////////////////////////////////////////////////////////////////////

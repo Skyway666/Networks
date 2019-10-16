@@ -68,35 +68,26 @@ bool ModuleNetworkingClient::gui()
 		ImVec2 texSize(400.0f, 400.0f * tex->height / tex->width);
 		ImGui::Image(tex->shaderResource, texSize);
 
-		ImGui::Text("%s connected to the server...", playerName.c_str());
-
-		for (auto message : messages)
-			ImGui::Text("Message from %s: %s ", message.playerName.c_str(), message.message.c_str());
-
+		ImGui::Text("Logged as: %s", playerName.c_str());
 		if (ImGui::Button("DISCONNECT")) {
 			disconnect();
 			state = ClientState::Stopped;
 		}
 
-		static char message[100];
-		ImGui::InputText("Message Input", message, 100);
-
-		if (ImGui::Button("Send")) {
-			OutputMemoryStream packet;
-			packet << ClientMessage::RegularMessage;
-			std::string str_mssg = message;
-			packet << str_mssg;
-
-			if (sendPacket(packet, clientSocket) == SOCKET_ERROR) {
-				reportError("Error while sending message from client");
-				state = ClientState::Stopped;
-				disconnect();
-			}
-			messages.push_back(Message(message, playerName));
-
-		}
+		for (auto message : messages)
+			ImGui::Text("Message from %s: %s ", message.playerName.c_str(), message.message.c_str());
 
 		ImGui::End();
+
+		ImGui::Begin("Input Box");
+		static char inp_message[100];
+		ImGui::InputText("(Max 100 chars)", inp_message, 100);
+
+		if (ImGui::Button("Send")) 
+			sendServerMessage(inp_message, 100);
+
+		ImGui::End();
+	
 	}
 
 	return true;
@@ -109,16 +100,49 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, InputMemoryStre
 
 	switch (serverMessage) {
 	case ServerMessage::Welcome:
+	{
 		std::string welcome_message;
 		data >> welcome_message;
 
 		messages.push_back(Message(welcome_message, "Server"));
 		break;
 	}
+	case ServerMessage::UserMessage:
+	{
+		std::string playerName;
+		std::string message;
+		data >> playerName;
+		data >> message;
+
+
+		messages.push_back(Message(message, playerName));
+		break;
+	}
+	}
 }
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 {
 	state = ClientState::Stopped;
+}
+
+void ModuleNetworkingClient::sendServerMessage(char * message, int size) {
+	// Set up packet
+	OutputMemoryStream packet;
+	packet << ClientMessage::RegularMessage;
+	std::string str_mssg = message;
+	packet << str_mssg;
+
+	// Send packet and fill messages list
+	if (sendPacket(packet, clientSocket) == SOCKET_ERROR) {
+		reportError("Error while sending message from client");
+		state = ClientState::Stopped;
+		disconnect();
+	}
+	messages.push_back(Message(message, playerName));
+
+	// Clean message buffer
+	for (int i = 0; i < size; i++)
+		message[i] = '\0';
 }
 

@@ -39,6 +39,8 @@ private:
 
 	void onSocketDisconnected(SOCKET socket) override;
 
+	void sendPacketToAllUsers(SOCKET socket, OutputMemoryStream & data);
+
 
 
 	//////////////////////////////////////////////////////////////////////
