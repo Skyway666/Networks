@@ -35,6 +35,8 @@ protected:
 
 	std::vector<SOCKET> sockets;
 
+	std::vector<Message> messages;
+
 	sockaddr_in address; // For the server is any client, for the client is the server
 
 	void addSocket(SOCKET socket);

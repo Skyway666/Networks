@@ -70,6 +70,32 @@ bool ModuleNetworkingClient::gui()
 
 		ImGui::Text("%s connected to the server...", playerName.c_str());
 
+		for (auto message : messages)
+			ImGui::Text("Message from %s: %s ", message.playerName.c_str(), message.message.c_str());
+
+		if (ImGui::Button("DISCONNECT")) {
+			disconnect();
+			state = ClientState::Stopped;
+		}
+
+		static char message[100];
+		ImGui::InputText("Message Input", message, 100);
+
+		if (ImGui::Button("Send")) {
+			OutputMemoryStream packet;
+			packet << ClientMessage::RegularMessage;
+			std::string str_mssg = message;
+			packet << str_mssg;
+
+			if (sendPacket(packet, clientSocket) == SOCKET_ERROR) {
+				reportError("Error while sending message from client");
+				state = ClientState::Stopped;
+				disconnect();
+			}
+			messages.push_back(Message(message, playerName));
+
+		}
+
 		ImGui::End();
 	}
 
@@ -78,7 +104,17 @@ bool ModuleNetworkingClient::gui()
 
 void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, InputMemoryStream & data)
 {
-	state = ClientState::Stopped;
+	ServerMessage serverMessage;
+	data >> serverMessage;
+
+	switch (serverMessage) {
+	case ServerMessage::Welcome:
+		std::string welcome_message;
+		data >> welcome_message;
+
+		messages.push_back(Message(welcome_message, "Server"));
+		break;
+	}
 }
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)

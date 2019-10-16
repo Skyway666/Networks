@@ -5,11 +5,20 @@
 
 enum class ClientMessage
 {
-	Hello
+	Hello,
+	RegularMessage
 };
 
 enum class ServerMessage
 {
-	Welcome
+	Welcome,
+	UserMessage
 };
 
+class Message {
+public:
+	Message(std::string message, std::string playerName): message(message), playerName(playerName){}
+
+	std::string message;
+	std::string playerName;
+};

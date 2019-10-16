@@ -83,6 +83,10 @@ bool ModuleNetworkingServer::gui()
 			ImGui::Text("Player name: %s", connectedSocket.playerName.c_str());
 		}
 
+		for (auto message : messages)
+			ImGui::Text("Message from %s: %s ", message.playerName.c_str(), message.message.c_str());
+
+
 		ImGui::End();
 	}
 
@@ -118,15 +122,37 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 
 	switch (clientMessage) {
 		case ClientMessage::Hello:
+		{
+			std::string playerName;
+			data >> playerName;
+			for (auto &connectedSocket : connectedSockets) {
+				if (connectedSocket.socket == socket) {
+					connectedSocket.playerName = playerName;
 
-		std::string playerName;
-		data >> playerName;
-		for (auto &connectedSocket : connectedSockets) {
-			if (connectedSocket.socket == socket) {
-				connectedSocket.playerName = playerName;
+					// Send welcome message!
+					OutputMemoryStream out;
+					std::string welcome_message = "Welcome to the chat " + playerName + "!!";
+					out << ServerMessage::Welcome;
+					out << welcome_message;
+					messages.push_back(Message(welcome_message, playerName));
+					sendPacket(out, connectedSocket.socket);
+				}
 			}
 		}
 
+		break;
+
+		case ClientMessage::RegularMessage:
+		{
+			std::string message;
+			data >> message;
+			for (auto &connectedSocket : connectedSockets) {
+				if (connectedSocket.socket == socket) {
+					// Receive message
+					messages.push_back(Message(message, connectedSocket.playerName));
+				}
+			}
+		}
 		break;
 	}
 

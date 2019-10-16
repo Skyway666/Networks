@@ -31,6 +31,7 @@ void ModuleNetworking::disconnect()
 	{
 		shutdown(socket, 2);
 		closesocket(socket);
+		messages.clear();
 	}
 
 	sockets.clear();
@@ -106,7 +107,7 @@ bool ModuleNetworking::preUpdate()
 				}
 
 			}
-			else { // Client, time to receive
+			else { // Data, Time to receive
 
 				// TODO(jesus): handle disconnections. Remember that a socket has been
 				// disconnected from its remote end either when recv() returned 0,
