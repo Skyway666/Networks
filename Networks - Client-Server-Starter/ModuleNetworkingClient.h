@@ -37,6 +37,8 @@ private:
 	void onSocketDisconnected(SOCKET socket) override;
 
 	void sendServerMessage(char* message, int size);
+	
+	void drawMessages();
 
 
 
@@ -56,5 +58,8 @@ private:
 	SOCKET clientSocket = (SOCKET)(~0);
 
 	std::string playerName;
+
+	ImVec4 user_color;
+	bool color_assigned = false;
 };
 

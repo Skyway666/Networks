@@ -41,6 +41,8 @@ private:
 
 	void sendPacketToAllUsers(SOCKET socket, OutputMemoryStream & data);
 
+	void drawMessages();
+
 
 
 	//////////////////////////////////////////////////////////////////////
@@ -62,8 +64,12 @@ private:
 		sockaddr_in address;
 		SOCKET socket;
 		std::string playerName;
+		ImVec4 color;
 	};
 
 	std::vector<ConnectedSocket> connectedSockets;
+
+	ImVec4 colors[5];
+	int current_user_color = 0;
 };
 

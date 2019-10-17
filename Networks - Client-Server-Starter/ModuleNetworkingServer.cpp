@@ -38,6 +38,14 @@ bool ModuleNetworkingServer::start(int port)
 
 	state = ServerState::Listening;
 
+
+	// Initialize colors
+	colors[0] = ImVec4(92, 50, 200, 255);
+	colors[1] = ImVec4(108, 70, 117, 255);
+	colors[2] = ImVec4(0, 0, 255, 255);
+	colors[3] = ImVec4(255, 128, 0, 255);
+	colors[4] = ImVec4(255, 128, 0, 255);
+
 	return true;
 }
 
@@ -80,27 +88,7 @@ bool ModuleNetworkingServer::gui() {
 			ImGui::Text("Player name: %s", connectedSocket.playerName.c_str());
 		}
 
-		for (auto message : messages) {
-
-			switch ((ClientMessage)message.type) {
-			case ClientMessage::Hello:
-			{
-				ImGui::TextColored(ImVec4(0, 255, 0, 255), message.message.c_str());
-				break;
-			}
-			case ClientMessage::RegularMessage:
-			{
-				ImGui::Text("Message from %s: %s ", message.playerName.c_str(), message.message.c_str());
-				break;
-			}
-			case ClientMessage::Bye:
-			{
-				ImGui::TextColored(ImVec4(255, 0, 0, 255), message.message.c_str());
-			}
-
-			}
-		}
-
+		drawMessages();
 
 		ImGui::End();
 	}
@@ -135,15 +123,16 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 	data >> type;
 
 	switch (type) {
-		case ClientMessage::Hello:
+		case ClientMessage::Hello: // Notify all users of someone connected
 		{
 			std::string playerName;
 			data >> playerName;
 			for (auto &connectedSocket : connectedSockets) {
 				if (connectedSocket.socket == socket) {
 
-					// Set player name
+					// Set player name and color
 					connectedSocket.playerName = playerName;
+					connectedSocket.color = colors[current_user_color++];
 					// Store welcome message in server
 					std::string welcome_message = "\n'''\n" + playerName + " entered the chat!!\n" + "'''";
 					messages.push_back(Message(welcome_message, "Server", (int)type));
@@ -151,8 +140,9 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 					// Send welcome message to clients
 					OutputMemoryStream out;
 					out << ServerMessage::Welcome;
+					out << connectedSocket.color.x; out << connectedSocket.color.y; out << connectedSocket.color.z; out << connectedSocket.color.w; //TODO: Make function
 					out << welcome_message;
-					sendPacketToAllUsers(connectedSocket.socket, out);
+					sendPacketToAllUsers(INVALID_SOCKET, out);
 				}
 			}
 			break;
@@ -160,18 +150,19 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 
 
 
-		case ClientMessage::RegularMessage:
+		case ClientMessage::RegularMessage: // Notify all users someone sent a message
 		{
 			std::string message;
 			data >> message;
 			for (auto &connectedSocket : connectedSockets) {
 				if (connectedSocket.socket == socket) {
 					// Store message
-					messages.push_back(Message(message, connectedSocket.playerName, (int)type));
+					messages.push_back(Message(message, connectedSocket.playerName, (int)type, connectedSocket.color));
 
 					OutputMemoryStream out;
 					out << ServerMessage::UserMessage;
 					out << connectedSocket.playerName;
+					out << connectedSocket.color.x; out << connectedSocket.color.y; out << connectedSocket.color.z; out << connectedSocket.color.w; //TODO: Make function
 					out << message;
 					// Resend to all users
 					sendPacketToAllUsers(connectedSocket.socket, out);
@@ -179,7 +170,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 			}
 			break;
 		}
-		case ClientMessage::Bye:
+		case ClientMessage::Bye: //Notify users sommeone disconnected
 		{
 			for (auto &connectedSocket : connectedSockets) {
 				if (connectedSocket.socket == socket) {
@@ -221,5 +212,28 @@ void ModuleNetworkingServer::sendPacketToAllUsers(SOCKET socket, OutputMemoryStr
 	for (auto &users : connectedSockets)
 		if (users.socket != socket && !isListenSocket(users.socket))
 			sendPacket(data, users.socket);
+}
+
+void ModuleNetworkingServer::drawMessages() {
+	for (auto message : messages) {
+
+		switch ((ClientMessage)message.type) {
+		case ClientMessage::Hello:
+		{
+			ImGui::TextColored(ImVec4(0, 255, 0, 255), message.message.c_str());
+			break;
+		}
+		case ClientMessage::RegularMessage:
+		{
+			ImGui::TextColored(message.color, "Message from %s: %s ", message.playerName.c_str(), message.message.c_str());
+			break;
+		}
+		case ClientMessage::Bye:
+		{
+			ImGui::TextColored(ImVec4(255, 0, 0, 255), message.message.c_str());
+		}
+
+		}
+	}
 }
 

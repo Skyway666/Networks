@@ -28,6 +28,7 @@ bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPor
 	// If everything was ok... change the state
 	state = ClientState::Start;
 
+
 	return true;
 }
 
@@ -77,27 +78,7 @@ bool ModuleNetworkingClient::gui()
 			state = ClientState::Stopped;
 		}
 
-		for (auto message : messages) {
-
-			switch ((ServerMessage)message.type) {
-				case ServerMessage::Welcome:
-				{
-					ImGui::TextColored(ImVec4(0, 255, 0, 255), message.message.c_str());
-					break;
-				}
-				case ServerMessage::UserMessage:
-				{
-					ImGui::Text("Message from %s: %s ", message.playerName.c_str(), message.message.c_str());
-					break;
-				}
-				case ServerMessage::Disconnect:
-				{
-					ImGui::TextColored(ImVec4(255, 0, 0, 255), message.message.c_str());
-					break;
-				}
-
-			}
-		}
+		drawMessages();
 		ImGui::End();
 
 		ImGui::Begin("Input Box");
@@ -120,26 +101,34 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, InputMemoryStre
 	data >> type;
 
 	switch (type) {
-	case ServerMessage::Welcome:
+	case ServerMessage::Welcome: // Someone was connected
 	{
 		std::string welcome_message;
+		ImVec4 color;
+		data >> color.x; data >> color.y; data >> color.z; data >> color.w; //TODO: Make function
+		if(!color_assigned){
+			user_color = color;
+			color_assigned = true;
+		}
 		data >> welcome_message;
 
 		messages.push_back(Message(welcome_message, "Server", (int)type));
 		break;
 	}
-	case ServerMessage::UserMessage:
+	case ServerMessage::UserMessage: // Someone sent a message
 	{
 		std::string playerName;
 		std::string message;
+		ImVec4 color;
 		data >> playerName;
+		data >> color.x; data >> color.y; data >> color.z; data >> color.w; //TODO: Make function
 		data >> message;
 
 
-		messages.push_back(Message(message, playerName, (int)type));
+		messages.push_back(Message(message, playerName, (int)type, color));
 		break;
 	}
-	case ServerMessage::Disconnect:
+	case ServerMessage::Disconnect: // Someone disconnected
 	{
 		std::string message;
 		data >> message;
@@ -169,10 +158,34 @@ void ModuleNetworkingClient::sendServerMessage(char * message, int size) {
 		state = ClientState::Stopped;
 		disconnect();
 	}
-	messages.push_back(Message(message, playerName, (int)ServerMessage::UserMessage));
+	messages.push_back(Message(message, playerName, (int)ServerMessage::UserMessage, user_color));
 
 	// Clean message buffer
 	for (int i = 0; i < size; i++)
 		message[i] = '\0';
+}
+
+void ModuleNetworkingClient::drawMessages() {
+	for (auto message : messages) {
+
+		switch ((ServerMessage)message.type) {
+		case ServerMessage::Welcome:
+		{
+			ImGui::TextColored(ImVec4(0, 255, 0, 255), message.message.c_str());
+			break;
+		}
+		case ServerMessage::UserMessage:
+		{
+			ImGui::TextColored(message.color, "Message from %s: %s ", message.playerName.c_str(), message.message.c_str());
+			break;
+		}
+		case ServerMessage::Disconnect:
+		{
+			ImGui::TextColored(ImVec4(255, 0, 0, 255), message.message.c_str());
+			break;
+		}
+
+		}
+	}
 }
 

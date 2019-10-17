@@ -19,9 +19,11 @@ enum class ServerMessage
 
 class Message {
 public:
-	Message(std::string message, std::string playerName, int type = 0): message(message), playerName(playerName), type(type){}
+	Message(std::string message, std::string playerName, int type = 0, ImVec4 color = ImVec4(0,0,0,255)): 
+	message(message), playerName(playerName), type(type), color(color){}
 
 	std::string message;
 	std::string playerName;
 	int type; // ClientMessage, ServerMessage
+	ImVec4 color;
 };
