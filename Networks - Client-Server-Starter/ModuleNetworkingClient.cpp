@@ -70,13 +70,34 @@ bool ModuleNetworkingClient::gui()
 
 		ImGui::Text("Logged as: %s", playerName.c_str());
 		if (ImGui::Button("DISCONNECT")) {
+			OutputMemoryStream out;
+			out << ClientMessage::Bye;
+			sendPacket(out, clientSocket);
 			disconnect();
 			state = ClientState::Stopped;
 		}
 
-		for (auto message : messages)
-			ImGui::Text("Message from %s: %s ", message.playerName.c_str(), message.message.c_str());
+		for (auto message : messages) {
 
+			switch ((ServerMessage)message.type) {
+				case ServerMessage::Welcome:
+				{
+					ImGui::TextColored(ImVec4(0, 255, 0, 255), message.message.c_str());
+					break;
+				}
+				case ServerMessage::UserMessage:
+				{
+					ImGui::Text("Message from %s: %s ", message.playerName.c_str(), message.message.c_str());
+					break;
+				}
+				case ServerMessage::Disconnect:
+				{
+					ImGui::TextColored(ImVec4(255, 0, 0, 255), message.message.c_str());
+					break;
+				}
+
+			}
+		}
 		ImGui::End();
 
 		ImGui::Begin("Input Box");
@@ -95,16 +116,16 @@ bool ModuleNetworkingClient::gui()
 
 void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, InputMemoryStream & data)
 {
-	ServerMessage serverMessage;
-	data >> serverMessage;
+	ServerMessage type;
+	data >> type;
 
-	switch (serverMessage) {
+	switch (type) {
 	case ServerMessage::Welcome:
 	{
 		std::string welcome_message;
 		data >> welcome_message;
 
-		messages.push_back(Message(welcome_message, "Server"));
+		messages.push_back(Message(welcome_message, "Server", (int)type));
 		break;
 	}
 	case ServerMessage::UserMessage:
@@ -115,7 +136,16 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, InputMemoryStre
 		data >> message;
 
 
-		messages.push_back(Message(message, playerName));
+		messages.push_back(Message(message, playerName, (int)type));
+		break;
+	}
+	case ServerMessage::Disconnect:
+	{
+		std::string message;
+		data >> message;
+
+
+		messages.push_back(Message(message, "Server", (int)type));
 		break;
 	}
 	}
@@ -139,7 +169,7 @@ void ModuleNetworkingClient::sendServerMessage(char * message, int size) {
 		state = ClientState::Stopped;
 		disconnect();
 	}
-	messages.push_back(Message(message, playerName));
+	messages.push_back(Message(message, playerName, (int)ServerMessage::UserMessage));
 
 	// Clean message buffer
 	for (int i = 0; i < size; i++)

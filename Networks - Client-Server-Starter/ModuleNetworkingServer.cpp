@@ -57,10 +57,8 @@ bool ModuleNetworkingServer::update()
 	return true;
 }
 
-bool ModuleNetworkingServer::gui()
-{
-	if (state != ServerState::Stopped)
-	{
+bool ModuleNetworkingServer::gui() {
+	if (state != ServerState::Stopped) {
 		// NOTE(jesus): You can put ImGui code here for debugging purposes
 		ImGui::Begin("Server Window");
 
@@ -70,8 +68,7 @@ bool ModuleNetworkingServer::gui()
 
 		ImGui::Text("List of connected sockets:");
 
-		for (auto &connectedSocket : connectedSockets)
-		{
+		for (auto &connectedSocket : connectedSockets) {
 			ImGui::Separator();
 			ImGui::Text("Socket ID: %d", connectedSocket.socket);
 			ImGui::Text("Address: %d.%d.%d.%d:%d",
@@ -83,13 +80,30 @@ bool ModuleNetworkingServer::gui()
 			ImGui::Text("Player name: %s", connectedSocket.playerName.c_str());
 		}
 
-		for (auto message : messages)
-			ImGui::Text("Message from %s: %s ", message.playerName.c_str(), message.message.c_str());
+		for (auto message : messages) {
+
+			switch ((ClientMessage)message.type) {
+			case ClientMessage::Hello:
+			{
+				ImGui::TextColored(ImVec4(0, 255, 0, 255), message.message.c_str());
+				break;
+			}
+			case ClientMessage::RegularMessage:
+			{
+				ImGui::Text("Message from %s: %s ", message.playerName.c_str(), message.message.c_str());
+				break;
+			}
+			case ClientMessage::Bye:
+			{
+				ImGui::TextColored(ImVec4(255, 0, 0, 255), message.message.c_str());
+			}
+
+			}
+		}
 
 
 		ImGui::End();
 	}
-
 	return true;
 }
 
@@ -117,10 +131,10 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 {
 	// Set the player name of the corresponding connected socket proxy
 
-	ClientMessage clientMessage;
-	data >> clientMessage;
+	ClientMessage type;
+	data >> type;
 
-	switch (clientMessage) {
+	switch (type) {
 		case ClientMessage::Hello:
 		{
 			std::string playerName;
@@ -132,7 +146,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 					connectedSocket.playerName = playerName;
 					// Store welcome message in server
 					std::string welcome_message = "\n'''\n" + playerName + " entered the chat!!\n" + "'''";
-					messages.push_back(Message(welcome_message, "Server"));
+					messages.push_back(Message(welcome_message, "Server", (int)type));
 
 					// Send welcome message to clients
 					OutputMemoryStream out;
@@ -141,9 +155,10 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 					sendPacketToAllUsers(connectedSocket.socket, out);
 				}
 			}
+			break;
 		}
 
-		break;
+
 
 		case ClientMessage::RegularMessage:
 		{
@@ -151,8 +166,8 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 			data >> message;
 			for (auto &connectedSocket : connectedSockets) {
 				if (connectedSocket.socket == socket) {
-					// Receive message
-					messages.push_back(Message(message, connectedSocket.playerName));
+					// Store message
+					messages.push_back(Message(message, connectedSocket.playerName, (int)type));
 
 					OutputMemoryStream out;
 					out << ServerMessage::UserMessage;
@@ -162,8 +177,28 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 					sendPacketToAllUsers(connectedSocket.socket, out);
 				}
 			}
+			break;
 		}
-		break;
+		case ClientMessage::Bye:
+		{
+			for (auto &connectedSocket : connectedSockets) {
+				if (connectedSocket.socket == socket) {
+					std::string disconnect = "\n'''\n" + connectedSocket.playerName + " left the chat\n'''";
+					// Store message
+					messages.push_back(Message(disconnect, "Server", (int)type));
+
+					OutputMemoryStream out;
+					out << ServerMessage::Disconnect;
+					out << disconnect;
+					// Resend to all users
+					sendPacketToAllUsers(connectedSocket.socket, out);
+				}
+			}
+	
+
+			break;
+		}
+		
 	}
 
 }
