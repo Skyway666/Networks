@@ -40,11 +40,11 @@ bool ModuleNetworkingServer::start(int port)
 
 
 	// Initialize colors
-	colors[0] = ImVec4(92, 50, 200, 255);
-	colors[1] = ImVec4(108, 70, 117, 255);
-	colors[2] = ImVec4(0, 0, 255, 255);
-	colors[3] = ImVec4(255, 128, 0, 255);
-	colors[4] = ImVec4(255, 128, 0, 255);
+	colors[0] = ImVec4((float)92/255, (float)50 / 255, (float)200 / 255, 1); //Purple
+	colors[1] = ImVec4((float)108 / 255, (float)70 / 255, (float)117 / 255, 1);
+	colors[2] = ImVec4(0, 0, 1, 1); //Blue
+	colors[3] = ImVec4(1, (float)128 / 255, 0, 1); //Orange
+	colors[4] = ImVec4(1, 1, 1, 1); //White
 
 	return true;
 }
