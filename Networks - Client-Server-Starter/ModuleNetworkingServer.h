@@ -2,6 +2,8 @@
 
 #include "ModuleNetworking.h"
 
+#define MAX_USERS 5
+
 class ModuleNetworkingServer : public ModuleNetworking
 {
 public:
@@ -41,6 +43,8 @@ private:
 
 	void sendPacketToAllUsers(SOCKET socket, OutputMemoryStream & data);
 
+	bool usedName(std::string name);
+
 	void drawMessages();
 
 
@@ -69,7 +73,7 @@ private:
 
 	std::vector<ConnectedSocket> connectedSockets;
 
-	ImVec4 colors[5];
+	ImVec4 colors[MAX_USERS];
 	int current_user_color = 0;
 };
 

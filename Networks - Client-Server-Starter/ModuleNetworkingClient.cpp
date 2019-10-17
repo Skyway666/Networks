@@ -1,6 +1,7 @@
 #include "ModuleNetworkingClient.h"
 
 
+
 bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPort, const char *pplayerName)
 {
 	playerName = pplayerName;
@@ -70,13 +71,9 @@ bool ModuleNetworkingClient::gui()
 		ImGui::Image(tex->shaderResource, texSize);
 
 		ImGui::Text("Logged as: %s", playerName.c_str());
-		if (ImGui::Button("DISCONNECT")) {
-			OutputMemoryStream out;
-			out << ClientMessage::Bye;
-			sendPacket(out, clientSocket);
-			disconnect();
-			state = ClientState::Stopped;
-		}
+		if (ImGui::Button("DISCONNECT")) 
+			exitServer();
+		
 
 		drawMessages();
 		ImGui::End();
@@ -101,6 +98,30 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, InputMemoryStre
 	data >> type;
 
 	switch (type) {
+	case ServerMessage::Unable: // Someone disconnected
+	{
+		std::string message;
+		UnableLog error;
+		data >> error;
+
+		switch (error) {
+			case UnableLog::ServerFull:
+				ELOG("Coudn't connect, server full");
+				break;
+			case UnableLog::ServerName:
+				ELOG("Coudn't connect, name 'Server' is not possible");
+				break;
+			case UnableLog::UsedName:
+				ELOG("Coudn't connect, your name is being used");
+			break;
+		}
+
+
+		disconnect();
+		state = ClientState::Stopped;
+		
+		break;
+	}
 	case ServerMessage::Welcome: // Someone was connected
 	{
 		std::string welcome_message;
@@ -137,6 +158,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, InputMemoryStre
 		messages.push_back(Message(message, "Server", (int)type));
 		break;
 	}
+
 	}
 }
 
@@ -163,6 +185,14 @@ void ModuleNetworkingClient::sendServerMessage(char * message, int size) {
 	// Clean message buffer
 	for (int i = 0; i < size; i++)
 		message[i] = '\0';
+}
+
+void ModuleNetworkingClient::exitServer() {
+	OutputMemoryStream out;
+	out << ClientMessage::Bye;
+	sendPacket(out, clientSocket);
+	disconnect();
+	state = ClientState::Stopped;
 }
 
 void ModuleNetworkingClient::drawMessages() {

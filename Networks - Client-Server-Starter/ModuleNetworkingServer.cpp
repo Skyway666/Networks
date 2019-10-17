@@ -7,6 +7,9 @@
 // ModuleNetworkingServer public methods
 //////////////////////////////////////////////////////////////////////
 
+
+
+
 bool ModuleNetworkingServer::start(int port)
 {
 	// TODO(jesus): TCP listen socket stuff
@@ -41,10 +44,10 @@ bool ModuleNetworkingServer::start(int port)
 
 	// Initialize colors
 	colors[0] = ImVec4((float)92/255, (float)50 / 255, (float)200 / 255, 1); //Purple
-	colors[1] = ImVec4((float)108 / 255, (float)70 / 255, (float)117 / 255, 1);
+	colors[1] = ImVec4((float)108 / 255, (float)70 / 255, (float)117 / 255, 1); //Purple light
 	colors[2] = ImVec4(0, 0, 1, 1); //Blue
 	colors[3] = ImVec4(1, (float)128 / 255, 0, 1); //Orange
-	colors[4] = ImVec4(1, 1, 1, 1); //White
+	colors[MAX_USERS - 1] = ImVec4(1, 1, 1, 1); //White
 
 	return true;
 }
@@ -130,6 +133,26 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 			for (auto &connectedSocket : connectedSockets) {
 				if (connectedSocket.socket == socket) {
 
+					//Check stuff
+					bool server_full = connectedSockets.size() - 1 >= MAX_USERS;
+					bool used_name = usedName(playerName);
+					bool server_name = playerName == "Server";
+
+					if (server_full ||  used_name || server_name) {
+						// Reject Player
+						OutputMemoryStream out;
+						out << ServerMessage::Unable; // Set client to disconnect
+
+						UnableLog log = UnableLog::ServerFull;
+						if (server_name) log = UnableLog::ServerName;
+						else if (used_name) log = UnableLog::UsedName;
+						out << log; // Tell client disconnection reason
+
+						sendPacket(out, connectedSocket.socket);
+						return; // Exit function
+					}
+
+
 					// Set player name and color
 					connectedSocket.playerName = playerName;
 					connectedSocket.color = colors[current_user_color++];
@@ -147,9 +170,6 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 			}
 			break;
 		}
-
-
-
 		case ClientMessage::RegularMessage: // Notify all users someone sent a message
 		{
 			std::string message;
@@ -212,6 +232,14 @@ void ModuleNetworkingServer::sendPacketToAllUsers(SOCKET socket, OutputMemoryStr
 	for (auto &users : connectedSockets)
 		if (users.socket != socket && !isListenSocket(users.socket))
 			sendPacket(data, users.socket);
+}
+
+bool ModuleNetworkingServer::usedName(std::string name) {
+	for (auto connectedSocket : connectedSockets)
+		if (connectedSocket.playerName == name)
+			return true;
+
+	return false;
 }
 
 void ModuleNetworkingServer::drawMessages() {

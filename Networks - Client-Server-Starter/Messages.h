@@ -14,7 +14,14 @@ enum class ServerMessage
 {
 	Welcome,
 	UserMessage,
-	Disconnect
+	Disconnect,
+	Unable
+};
+
+enum class UnableLog {
+	ServerFull,
+	UsedName,
+	ServerName
 };
 
 class Message {
