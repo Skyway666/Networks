@@ -171,7 +171,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, InputMemoryStre
 
 		// Set up simon says display
 		std::string simon_says_display = playerName + " started a Simon Says! The word is: " + simon_says;
-		messages.push_back(Message(simon_says_display, playerName, (int)ClientMessage::SimonSays, color));
+		messages.push_back(Message(simon_says_display, playerName, (int)type, color));
 
 		//Start the minigame
 
@@ -187,19 +187,52 @@ void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 }
 
 void ModuleNetworkingClient::sendServerMessage(char * message, int size) {
-	// Set up packet
-	OutputMemoryStream packet;
-	packet << ClientMessage::RegularMessage;
-	std::string str_mssg = message;
-	packet << str_mssg;
 
-	// Send packet and fill messages list
-	if (sendPacket(packet, clientSocket) == SOCKET_ERROR) {
-		reportError("Error while sending message from client");
-		state = ClientState::Stopped;
-		disconnect();
+	std::string str_mssg = message;
+
+	if (str_mssg[0] == '/') { // Command
+		int sentence_start = str_mssg.find("simon_says ");
+		if (sentence_start != std::string::npos) { // Simon says command
+			// Extract word
+			sentence_start += std::string("simon_says ").size();
+			str_mssg.erase(0, sentence_start);
+
+			// str_mssg is now what simon says
+
+			// Send package to server
+			OutputMemoryStream out;
+			out << ClientMessage::SimonSays;
+			out << str_mssg;
+
+			if (sendPacket(out, clientSocket) == SOCKET_ERROR) {
+				reportError("Error while sending message from client");
+				state = ClientState::Stopped;
+				disconnect();
+			}
+
+			// Store message locally
+			std::string simon_says_display = "You started a Simon Says! The word is: " + str_mssg;
+			messages.push_back(Message(simon_says_display, playerName, (int)ServerMessage::SimonSays, user_color));
+
+		}
+		else {
+			//Error message, command does not exist
+		}
 	}
-	messages.push_back(Message(message, playerName, (int)ServerMessage::UserMessage, user_color));
+	else{ // Normal Message
+		// Set up packet
+		OutputMemoryStream packet;
+		packet << ClientMessage::RegularMessage;
+		packet << str_mssg;
+
+		// Send packet and fill messages list
+		if (sendPacket(packet, clientSocket) == SOCKET_ERROR) {
+			reportError("Error while sending message from client");
+			state = ClientState::Stopped;
+			disconnect();
+		}
+		messages.push_back(Message(message, playerName, (int)ServerMessage::UserMessage, user_color));
+	}
 
 	// Clean message buffer
 	for (int i = 0; i < size; i++)

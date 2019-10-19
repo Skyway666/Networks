@@ -176,37 +176,6 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 			data >> message;
 			for (auto &connectedSocket : connectedSockets) {
 				if (connectedSocket.socket == socket) {
-
-					//Check for commands
-
-					if (message[0] == '/') {// Command
-						int sentence_start = message.find("simon_says ");
-						if (sentence_start != std::string::npos) { // Simon says command
-
-							sentence_start += std::string("simon_says ").size();
-							message.erase(0, sentence_start);
-
-							// Message is now what simon says
-
-							OutputMemoryStream out;
-							out << ServerMessage::SimonSays;
-							out << connectedSocket.playerName;
-							out << connectedSocket.color.x; out << connectedSocket.color.y; out << connectedSocket.color.z; out << connectedSocket.color.w; //TODO: Make function
-							out << message;
-
-							std::string simon_says_display = connectedSocket.playerName + " started a Simon Says! The word is: " + message;
-
-							messages.push_back(Message(simon_says_display, connectedSocket.playerName, (int)ClientMessage::SimonSays, connectedSocket.color));
-
-							sendPacketToAllUsers(connectedSocket.socket, out);
-
-						}
-						else {
-
-							// Send error message, said command does not exist
-						}
-					}
-					else{ // Regular message
 						// Store message
 						messages.push_back(Message(message, connectedSocket.playerName, (int)type, connectedSocket.color));
 
@@ -217,7 +186,30 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 						out << message;
 						// Resend to all users
 						sendPacketToAllUsers(connectedSocket.socket, out);
-					}
+				}
+			}
+			break;
+		}
+
+		case ClientMessage::SimonSays:
+		{
+			std::string message;
+			data >> message;
+			for (auto &connectedSocket : connectedSockets) {
+				if (connectedSocket.socket == socket) {
+
+					// Resend Simon says
+					OutputMemoryStream out;
+					out << ServerMessage::SimonSays;
+					out << connectedSocket.playerName;
+					out << connectedSocket.color.x; out << connectedSocket.color.y; out << connectedSocket.color.z; out << connectedSocket.color.w; //TODO: Make function
+					out << message;
+
+					sendPacketToAllUsers(connectedSocket.socket, out);
+
+					// Store message in server
+					std::string simon_says_display = connectedSocket.playerName + " started a Simon Says! The word is: " + message;
+					messages.push_back(Message(simon_says_display, connectedSocket.playerName, (int)ClientMessage::SimonSays, connectedSocket.color));
 				}
 			}
 			break;
