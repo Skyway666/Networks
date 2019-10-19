@@ -158,6 +158,18 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, InputMemoryStre
 		messages.push_back(Message(message, "Server", (int)type));
 		break;
 	}
+	case ServerMessage::SimonSays:
+	{
+		// Code something so in 30 seconds, if the exact simon says message has not been sent the user gets disconnected
+
+		std::string playerName;
+		std::string message;
+		ImVec4 color;
+		data >> playerName;
+		data >> color.x; data >> color.y; data >> color.z; data >> color.w; //TODO: Make function
+		data >> message;
+		break;
+	}
 
 	}
 }

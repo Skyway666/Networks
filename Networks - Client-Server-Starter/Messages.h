@@ -15,7 +15,8 @@ enum class ServerMessage
 	Welcome,
 	UserMessage,
 	Disconnect,
-	Unable
+	Unable,
+	SimonSays
 };
 
 enum class UnableLog {
