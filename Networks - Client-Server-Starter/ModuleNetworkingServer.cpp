@@ -194,6 +194,10 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 							out << connectedSocket.color.x; out << connectedSocket.color.y; out << connectedSocket.color.z; out << connectedSocket.color.w; //TODO: Make function
 							out << message;
 
+							std::string simon_says_display = connectedSocket.playerName + " started a Simon Says! The word is: " + message;
+
+							messages.push_back(Message(simon_says_display, connectedSocket.playerName, (int)ClientMessage::SimonSays, connectedSocket.color));
+
 							sendPacketToAllUsers(connectedSocket.socket, out);
 
 						}
@@ -287,6 +291,11 @@ void ModuleNetworkingServer::drawMessages() {
 		case ClientMessage::Bye:
 		{
 			ImGui::TextColored(ImVec4(255, 0, 0, 255), message.message.c_str());
+		}
+		case ClientMessage::SimonSays:
+		{
+			ImGui::TextColored(message.color, message.message.c_str());
+			break;
 		}
 
 		}

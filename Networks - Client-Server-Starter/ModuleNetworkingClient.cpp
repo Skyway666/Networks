@@ -86,7 +86,6 @@ bool ModuleNetworkingClient::gui()
 			sendServerMessage(inp_message, 100);
 
 		ImGui::End();
-	
 	}
 
 	return true;
@@ -162,12 +161,20 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, InputMemoryStre
 	{
 		// Code something so in 30 seconds, if the exact simon says message has not been sent the user gets disconnected
 
+		// Receive data
 		std::string playerName;
-		std::string message;
+		std::string simon_says;
 		ImVec4 color;
 		data >> playerName;
 		data >> color.x; data >> color.y; data >> color.z; data >> color.w; //TODO: Make function
-		data >> message;
+		data >> simon_says;
+
+		// Set up simon says display
+		std::string simon_says_display = playerName + " started a Simon Says! The word is: " + simon_says;
+		messages.push_back(Message(simon_says_display, playerName, (int)ClientMessage::SimonSays, color));
+
+		//Start the minigame
+
 		break;
 	}
 
@@ -224,6 +231,11 @@ void ModuleNetworkingClient::drawMessages() {
 		case ServerMessage::Disconnect:
 		{
 			ImGui::TextColored(ImVec4(255, 0, 0, 255), message.message.c_str());
+			break;
+		}
+		case ServerMessage::SimonSays:
+		{
+			ImGui::TextColored(message.color, message.message.c_str());
 			break;
 		}
 
