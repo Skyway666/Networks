@@ -60,9 +60,8 @@ bool ModuleNetworkingClient::update() {
 		{
 			int time_elapsed = (std::clock() - simon_says_start) / CLOCKS_PER_SEC;
 			if (time_elapsed > simon_says_duration) {
-				reportError("You failed the simon says");
-				state = ClientState::Stopped;
-				disconnect();
+				ELOG("You failed the simon says");
+				exitServer();
 			}
 		}
 	}
@@ -96,6 +95,15 @@ bool ModuleNetworkingClient::gui()
 			sendServerMessage(inp_message, 100);
 
 		ImGui::End();
+
+		if (state == ClientState::SimonSays) {
+			ImGui::Begin("Simon says timer!");
+			ImGui::Text("Simon Says %s: %i", simon_says_keyword.c_str(), (std::clock() - simon_says_start) / CLOCKS_PER_SEC);
+			ImGui::End();
+		}
+
+
+
 	}
 
 	return true;
@@ -298,6 +306,7 @@ void ModuleNetworkingClient::startSimonSays(std::string keyword) {
 
 void ModuleNetworkingClient::stopSimonSays() {
 	state = ClientState::Logging;
-	//Notify user they have passed the simon says
+
+	messages.push_back(Message("You passed the simon says!", playerName, (int)ServerMessage::SimonSays, user_color));
 }
 
