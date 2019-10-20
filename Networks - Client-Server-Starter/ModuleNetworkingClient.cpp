@@ -1,5 +1,5 @@
 #include "ModuleNetworkingClient.h"
-
+#include <ctime>
 
 
 bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPort, const char *pplayerName)
@@ -38,24 +38,34 @@ bool ModuleNetworkingClient::isRunning() const
 	return state != ClientState::Stopped;
 }
 
-bool ModuleNetworkingClient::update()
-{
-	if (state == ClientState::Start)
-	{
-		// TODO(jesus): Send the player name to the server
-		OutputMemoryStream packet;
-		packet << ClientMessage::Hello;
-		packet << playerName;
+bool ModuleNetworkingClient::update() {
+	switch (state) {
+		case ClientState::Start:
+		{
+			// TODO(jesus): Send the player name to the server
+			OutputMemoryStream packet;
+			packet << ClientMessage::Hello;
+			packet << playerName;
 
-		state = ClientState::Logging;
+			state = ClientState::Logging;
 
-		if (sendPacket(packet, clientSocket) == SOCKET_ERROR){
-			reportError("Error while sending message from client");
-			state = ClientState::Stopped;
-			disconnect();
+			if (sendPacket(packet, clientSocket) == SOCKET_ERROR) {
+				reportError("Error while sending message from client");
+				state = ClientState::Stopped;
+				disconnect();
+			}
+			break;
+		}
+		case ClientState::SimonSays:
+		{
+			int time_elapsed = (std::clock() - simon_says_start) / CLOCKS_PER_SEC;
+			if (time_elapsed > simon_says_duration) {
+				reportError("You failed the simon says");
+				state = ClientState::Stopped;
+				disconnect();
+			}
 		}
 	}
-
 	return true;
 }
 
@@ -174,6 +184,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, InputMemoryStre
 		messages.push_back(Message(simon_says_display, playerName, (int)type, color));
 
 		//Start the minigame
+		startSimonSays(simon_says);
 
 		break;
 	}
@@ -232,8 +243,11 @@ void ModuleNetworkingClient::sendServerMessage(char * message, int size) {
 			disconnect();
 		}
 		messages.push_back(Message(message, playerName, (int)ServerMessage::UserMessage, user_color));
-	}
 
+		// Check if we are playing SimonSays
+		if (state == ClientState::SimonSays && str_mssg == simon_says_keyword)
+			stopSimonSays();
+	}
 	// Clean message buffer
 	for (int i = 0; i < size; i++)
 		message[i] = '\0';
@@ -274,5 +288,16 @@ void ModuleNetworkingClient::drawMessages() {
 
 		}
 	}
+}
+
+void ModuleNetworkingClient::startSimonSays(std::string keyword) {
+	state = ClientState::SimonSays;
+	simon_says_start = std::clock();
+	simon_says_keyword = keyword;
+}
+
+void ModuleNetworkingClient::stopSimonSays() {
+	state = ClientState::Logging;
+	//Notify user they have passed the simon says
 }
 

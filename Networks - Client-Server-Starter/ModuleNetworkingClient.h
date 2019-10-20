@@ -52,7 +52,8 @@ private:
 	{
 		Stopped,
 		Start,
-		Logging
+		Logging,
+		SimonSays
 	};
 
 	ClientState state = ClientState::Stopped;
@@ -63,5 +64,14 @@ private:
 
 	ImVec4 user_color;
 	bool color_assigned = false;
+
+
+	// Simon says badly coded stuff
+	int simon_says_start = 0;
+	int simon_says_duration = 10; // Seconds
+	std::string simon_says_keyword;
+
+	void startSimonSays(std::string keyword);
+	void stopSimonSays();
 };
 

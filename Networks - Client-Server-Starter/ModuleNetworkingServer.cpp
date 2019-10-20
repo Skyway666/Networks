@@ -134,7 +134,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 				if (connectedSocket.socket == socket) {
 
 					//Check stuff
-					bool server_full = connectedSockets.size() - 1 >= MAX_USERS;
+					bool server_full = (int)connectedSockets.size() - 1 >= MAX_USERS; // One is listener, other is newly connected socket
 					bool used_name = usedName(playerName);
 					bool server_name = playerName == "Server";
 
@@ -149,23 +149,22 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, InputMemoryStre
 						out << log; // Tell client disconnection reason
 
 						sendPacket(out, connectedSocket.socket);
-						return; // Exit function
 					}
+					else{
+						// Set player name and color
+						connectedSocket.playerName = playerName;
+						connectedSocket.color = colors[(int)connectedSockets.size() - 1];
+						// Store welcome message in server
+						std::string welcome_message = "\n'''\n" + playerName + " entered the chat!!\n" + "'''";
+						messages.push_back(Message(welcome_message, "Server", (int)type));
 
-
-					// Set player name and color
-					connectedSocket.playerName = playerName;
-					connectedSocket.color = colors[current_user_color++];
-					// Store welcome message in server
-					std::string welcome_message = "\n'''\n" + playerName + " entered the chat!!\n" + "'''";
-					messages.push_back(Message(welcome_message, "Server", (int)type));
-
-					// Send welcome message to clients
-					OutputMemoryStream out;
-					out << ServerMessage::Welcome;
-					out << connectedSocket.color.x; out << connectedSocket.color.y; out << connectedSocket.color.z; out << connectedSocket.color.w; //TODO: Make function
-					out << welcome_message;
-					sendPacketToAllUsers(INVALID_SOCKET, out);
+						// Send welcome message to clients
+						OutputMemoryStream out;
+						out << ServerMessage::Welcome;
+						out << connectedSocket.color.x; out << connectedSocket.color.y; out << connectedSocket.color.z; out << connectedSocket.color.w; //TODO: Make function
+						out << welcome_message;
+						sendPacketToAllUsers(INVALID_SOCKET, out);
+					}
 				}
 			}
 			break;
