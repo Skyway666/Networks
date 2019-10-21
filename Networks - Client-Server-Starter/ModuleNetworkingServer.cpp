@@ -282,6 +282,7 @@ void ModuleNetworkingServer::drawMessages() {
 		case ClientMessage::Bye:
 		{
 			ImGui::TextColored(ImVec4(255, 0, 0, 255), message.message.c_str());
+			break;
 		}
 		case ClientMessage::SimonSays:
 		{
