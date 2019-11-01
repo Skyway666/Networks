@@ -11,6 +11,7 @@ enum class ServerMessage
 {
 	Welcome,
 	Unwelcome,
-	Replication,
-	Ping
+	Ping, 
+	Replication
+	
 };

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Timer.h"
+
 #define SIMULATE_REAL_WORLD_CONDITIONS
 
 class ModuleNetworking : public Module
@@ -34,7 +36,12 @@ protected:
 
 	void reportError(const char *message);
 
+	//////////////////////////////////////////////////////////////////////
+	// Module virtual methods
+	//////////////////////////////////////////////////////////////////////
 
+
+	Timer sendPingTimer;
 
 private:
 

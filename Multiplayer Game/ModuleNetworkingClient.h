@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ModuleNetworking.h"
+#include "Timer.h"
 
 class ModuleNetworkingClient : public ModuleNetworking
 {
@@ -35,6 +36,8 @@ private:
 	void onConnectionReset(const sockaddr_in &fromAddress) override;
 
 	void onDisconnect() override;
+
+
 
 
 
@@ -79,6 +82,9 @@ private:
 	// Timeout / ping
 
 	double lastPacketReceivedTime = 0.0f; // NOTE(jesus): Use this to implement client timeout
-	float secondsSinceLastPing = 0.0f;    // NOTE(jesus): Use this to implement ping to server
+	Timer receivePingTimer;
+
+	void initializePing();
+	void managePing(sockaddr_in otherAddress);
 };
 

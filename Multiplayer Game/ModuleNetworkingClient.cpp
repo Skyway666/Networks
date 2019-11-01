@@ -51,7 +51,6 @@ void ModuleNetworkingClient::onStart()
 	inputDataBack = 0;
 
 	secondsSinceLastInputDelivery = 0.0f;
-	secondsSinceLastPing = 0.0f;
 	lastPacketReceivedTime = Time.time;
 }
 
@@ -128,6 +127,9 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 	else if (state == ClientState::Playing)
 	{
 		// TODO(jesus): Handle incoming messages from server
+		if (message == ServerMessage::Ping)
+			receivePingTimer.Start();
+
 	}
 }
 
@@ -147,12 +149,19 @@ void ModuleNetworkingClient::onUpdate()
 		sendPacket(stream, serverAddress);
 
 		state = ClientState::WaitingWelcome;
+
+		initializePing();
+
 	}
 	else if (state == ClientState::WaitingWelcome)
 	{
 	}
 	else if (state == ClientState::Playing)
 	{
+		// Check last ping and disconnect
+		managePing(serverAddress);
+
+
 		secondsSinceLastInputDelivery += Time.deltaTime;
 
 		if (inputDataBack - inputDataFront < ArrayCount(inputData))
@@ -219,4 +228,23 @@ void ModuleNetworkingClient::onDisconnect()
 	}
 
 	App->modRender->cameraPosition = {};
+}
+
+
+void ModuleNetworkingClient::initializePing() {
+	receivePingTimer.Start();
+	sendPingTimer.Start();
+}
+
+void ModuleNetworkingClient::managePing(sockaddr_in otherAddress) {
+	if (receivePingTimer.ReadSeconds() > DISCONNECT_TIMEOUT_SECONDS)
+		disconnect();
+
+	if (sendPingTimer.ReadSeconds() > PING_INTERVAL_SECONDS) {
+		OutputMemoryStream out;
+		out << ClientMessage::Ping; 
+		sendPacket(out, otherAddress);
+		sendPingTimer.Start();
+	}
+
 }

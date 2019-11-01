@@ -38,7 +38,7 @@ void ModuleNetworkingServer::onStart()
 
 	state = ServerState::Listening;
 
-	secondsSinceLastPing = 0.0f;
+	sendPingTimer.Start();
 }
 
 void ModuleNetworkingServer::onGui()
@@ -97,12 +97,10 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 		packet >> message;
 
 		// Process the packet depending on its type
-		if (message == ClientMessage::Hello)
-		{
+		if (message == ClientMessage::Hello) {
 			bool newClient = false;
 
-			if (proxy == nullptr)
-			{
+			if (proxy == nullptr) {
 				proxy = createClientProxy();
 
 				newClient = true;
@@ -119,6 +117,9 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				proxy->name = playerName;
 				proxy->clientId = nextClientId++;
 
+				// Start "receive Ping timer"
+				proxy->receivePingTimer.Start();
+
 				// Create new network object
 				spawnPlayer(*proxy, spaceshipType);
 
@@ -133,8 +134,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				uint16 networkGameObjectsCount;
 				GameObject *networkGameObjects[MAX_NETWORK_OBJECTS];
 				App->modLinkingContext->getNetworkGameObjects(networkGameObjects, &networkGameObjectsCount);
-				for (uint16 i = 0; i < networkGameObjectsCount; ++i)
-				{
+				for (uint16 i = 0; i < networkGameObjectsCount; ++i) {
 					GameObject *gameObject = networkGameObjects[i];
 
 					// TODO(jesus): Notify the new client proxy's replication manager about the creation of this game object
@@ -143,8 +143,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				LOG("Message received: hello - from player %s", playerName.c_str());
 			}
 
-			if (!newClient)
-			{
+			if (!newClient) {
 				// Send welcome to the new player
 				OutputMemoryStream unwelcomePacket;
 				unwelcomePacket << ServerMessage::Unwelcome;
@@ -153,22 +152,18 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				WLOG("Message received: UNWELCOMED hello - from player %s", proxy->name.c_str());
 			}
 		}
-		else if (message == ClientMessage::Input)
-		{
+		else if (message == ClientMessage::Input) {
 			// Process the input packet and update the corresponding game object
-			if (proxy != nullptr)
-			{
+			if (proxy != nullptr) {
 				// Read input data
-				while (packet.RemainingByteCount() > 0)
-				{
+				while (packet.RemainingByteCount() > 0) {
 					InputPacketData inputData;
 					packet >> inputData.sequenceNumber;
 					packet >> inputData.horizontalAxis;
 					packet >> inputData.verticalAxis;
 					packet >> inputData.buttonBits;
 
-					if (inputData.sequenceNumber >= proxy->nextExpectedInputSequenceNumber)
-					{
+					if (inputData.sequenceNumber >= proxy->nextExpectedInputSequenceNumber) {
 						proxy->gamepad.horizontalAxis = inputData.horizontalAxis;
 						proxy->gamepad.verticalAxis = inputData.verticalAxis;
 						unpackInputControllerButtons(inputData.buttonBits, proxy->gamepad);
@@ -178,6 +173,8 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				}
 			}
 		}
+		else if (message == ClientMessage::Ping)
+			proxy->receivePingTimer.Start();
 
 		if (proxy != nullptr)
 		{
@@ -190,9 +187,12 @@ void ModuleNetworkingServer::onUpdate()
 {
 	if (state == ServerState::Listening)
 	{
-		// Replication
+		// Update clients
 		for (ClientProxy &clientProxy : clientProxies)
 		{
+			// Disconnect client if it hasen't send ping for a while
+			manageReceivePing(&clientProxy);
+			
 			if (clientProxy.connected)
 			{
 				OutputMemoryStream packet;
@@ -202,6 +202,9 @@ void ModuleNetworkingServer::onUpdate()
 				//              has pending data, write and send a replication packet to this client.
 			}
 		}
+
+		// Send ping to all clients periodically
+		manageSendPing();
 	}
 }
 
@@ -292,6 +295,14 @@ ModuleNetworkingServer::ClientProxy * ModuleNetworkingServer::createClientProxy(
 void ModuleNetworkingServer::destroyClientProxy(ClientProxy * proxy)
 {
 	*proxy = {};
+}
+
+void ModuleNetworkingServer::sendPacketAll(OutputMemoryStream data) {
+
+	for (ClientProxy &clientProxy : clientProxies) {
+		if(clientProxy.connected)
+			sendPacket(data, clientProxy.address);
+	}
 }
 
 
@@ -401,6 +412,20 @@ void ModuleNetworkingServer::updateNetworkObject(GameObject * gameObject)
 		{
 			// TODO(jesus): Notify this proxy's replication manager about the update of this game object
 		}
+	}
+}
+
+void ModuleNetworkingServer::manageReceivePing(ClientProxy * clientProxy) {
+	if (clientProxy->receivePingTimer.ReadSeconds() > DISCONNECT_TIMEOUT_SECONDS)
+		destroyClientProxy(clientProxy);
+}
+
+void ModuleNetworkingServer::manageSendPing() {
+	if (sendPingTimer.ReadSeconds() > PING_INTERVAL_SECONDS) {
+		OutputMemoryStream out;
+		out << ServerMessage::Ping;
+		sendPacketAll(out);
+		sendPingTimer.Start();
 	}
 }
 

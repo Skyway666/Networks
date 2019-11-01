@@ -54,6 +54,8 @@ private:
 
 		uint32 nextExpectedInputSequenceNumber = 0;
 		InputController gamepad;
+
+		Timer receivePingTimer;
 	};
 
 	ClientProxy clientProxies[MAX_CLIENTS];
@@ -63,6 +65,8 @@ private:
 	ClientProxy * getClientProxy(const sockaddr_in &clientAddress);
 
 	void destroyClientProxy(ClientProxy * proxy);
+
+	void sendPacketAll(OutputMemoryStream data);
 
 
 
@@ -107,10 +111,14 @@ private:
 	ServerState state = ServerState::Stopped;
 
 	uint16 listenPort = 0;
-
-	float secondsSinceLastPing = 0.0f;
 	
 	float replicationDeliveryIntervalSeconds = 0.1f;
+
+
+	// Timeout/ping
+
+	void manageReceivePing(ClientProxy* clientProxy);
+	void manageSendPing();
 };
 
 

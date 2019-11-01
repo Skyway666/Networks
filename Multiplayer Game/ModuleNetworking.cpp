@@ -1,4 +1,5 @@
 #include "Networks.h"
+#include "ModuleNetworking.h"
 
 
 
@@ -97,6 +98,10 @@ void ModuleNetworking::reportError(const char* inOperationDesc)
 
 	ELOG("Error %s: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
 }
+
+
+
+
 
 
 
