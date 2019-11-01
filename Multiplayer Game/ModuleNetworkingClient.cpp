@@ -92,6 +92,8 @@ void ModuleNetworkingClient::onGui()
 			ImGui::Text("Connection checking info:");
 			ImGui::Text(" - Ping interval (s): %f", PING_INTERVAL_SECONDS);
 			ImGui::Text(" - Disconnection timeout (s): %f", DISCONNECT_TIMEOUT_SECONDS);
+			ImGui::Text(" - Pings Received : %i", pingsReceived);
+			ImGui::Checkbox("Block Pings", &blockPingsSend);
 
 			ImGui::Separator();
 
@@ -127,8 +129,11 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 	else if (state == ClientState::Playing)
 	{
 		// TODO(jesus): Handle incoming messages from server
-		if (message == ServerMessage::Ping)
-			receivePingTimer.Start();
+		if (message == ServerMessage::Ping) {
+			receivePingTimer.Start(); 
+			pingsReceived++;
+		}
+
 
 	}
 }
@@ -240,7 +245,7 @@ void ModuleNetworkingClient::managePing(sockaddr_in otherAddress) {
 	if (receivePingTimer.ReadSeconds() > DISCONNECT_TIMEOUT_SECONDS)
 		disconnect();
 
-	if (sendPingTimer.ReadSeconds() > PING_INTERVAL_SECONDS) {
+	if (sendPingTimer.ReadSeconds() > PING_INTERVAL_SECONDS && !blockPingsSend) {
 		OutputMemoryStream out;
 		out << ClientMessage::Ping; 
 		sendPacket(out, otherAddress);

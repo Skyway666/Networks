@@ -37,11 +37,13 @@ protected:
 	void reportError(const char *message);
 
 	//////////////////////////////////////////////////////////////////////
-	// Module virtual methods
+	// Ping variables
 	//////////////////////////////////////////////////////////////////////
 
 
 	Timer sendPingTimer;
+	int pingsReceived = 0;
+	bool blockPingsSend = false;
 
 private:
 

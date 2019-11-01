@@ -48,7 +48,8 @@ void ModuleNetworkingServer::onGui()
 		ImGui::Text("Connection checking info:");
 		ImGui::Text(" - Ping interval (s): %f", PING_INTERVAL_SECONDS);
 		ImGui::Text(" - Disconnection timeout (s): %f", DISCONNECT_TIMEOUT_SECONDS);
-
+		ImGui::Text(" - Pings Received : %i", pingsReceived);
+		ImGui::Checkbox("Block Pings", &blockPingsSend);
 		ImGui::Separator();
 
 		ImGui::Text("Replication");
@@ -173,8 +174,11 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				}
 			}
 		}
-		else if (message == ClientMessage::Ping)
+		else if (message == ClientMessage::Ping) {
 			proxy->receivePingTimer.Start();
+			pingsReceived++;
+		}
+	
 
 		if (proxy != nullptr)
 		{
@@ -421,7 +425,7 @@ void ModuleNetworkingServer::manageReceivePing(ClientProxy * clientProxy) {
 }
 
 void ModuleNetworkingServer::manageSendPing() {
-	if (sendPingTimer.ReadSeconds() > PING_INTERVAL_SECONDS) {
+	if (sendPingTimer.ReadSeconds() > PING_INTERVAL_SECONDS && !blockPingsSend) {
 		OutputMemoryStream out;
 		out << ServerMessage::Ping;
 		sendPacketAll(out);
