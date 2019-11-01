@@ -66,7 +66,7 @@ private:
 
 	void destroyClientProxy(ClientProxy * proxy);
 
-	void sendPacketAll(OutputMemoryStream data);
+	void sendPacketAll(OutputMemoryStream& data);
 
 
 

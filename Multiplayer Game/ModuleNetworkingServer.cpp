@@ -297,7 +297,7 @@ void ModuleNetworkingServer::destroyClientProxy(ClientProxy * proxy)
 	*proxy = {};
 }
 
-void ModuleNetworkingServer::sendPacketAll(OutputMemoryStream data) {
+void ModuleNetworkingServer::sendPacketAll(OutputMemoryStream& data) {
 
 	for (ClientProxy &clientProxy : clientProxies) {
 		if(clientProxy.connected)
