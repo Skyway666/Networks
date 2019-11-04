@@ -86,5 +86,9 @@ private:
 
 	void initializePing();
 	void managePing(sockaddr_in otherAddress);
+
+
+	// Replication
+	ReplicationManagerClient replicationClient;
 };
 

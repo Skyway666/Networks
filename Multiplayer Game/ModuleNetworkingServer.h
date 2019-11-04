@@ -56,6 +56,8 @@ private:
 		InputController gamepad;
 
 		Timer receivePingTimer;
+		ReplicationManagerServer replicationManager;
+
 	};
 
 	ClientProxy clientProxies[MAX_CLIENTS];
