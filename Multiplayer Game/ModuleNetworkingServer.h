@@ -115,6 +115,9 @@ private:
 	uint16 listenPort = 0;
 	
 	float replicationDeliveryIntervalSeconds = 0.1f;
+	Timer sendReplicationTimer;
+
+	void manageSendReplication();
 
 
 	// Timeout/ping

@@ -5,6 +5,6 @@
 
 class ReplicationManagerClient {
 public:
-	void read(InputMemoryStream& packet);
-	void spawnObject(ObjectType tag);
+	void read(const InputMemoryStream& packet);
+	void spawnObject(int tag);
 };

@@ -1,4 +1,5 @@
 #pragma once
+
 enum ObjectType {
 	EMPTY,
 	LASER,

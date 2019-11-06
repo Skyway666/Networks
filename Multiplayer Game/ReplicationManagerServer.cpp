@@ -44,6 +44,7 @@ void ReplicationManagerServer::write(OutputMemoryStream & packet) {
 		}
 	}
 
+	// Clear actions list after sending packet
 	actions.clear();
 
 }

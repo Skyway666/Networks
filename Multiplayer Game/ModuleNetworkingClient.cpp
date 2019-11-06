@@ -133,6 +133,9 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 			receivePingTimer.Start(); 
 			pingsReceived++;
 		}
+		if (message == ServerMessage::Replication) {
+			replicationClient.read(packet);
+		}
 
 
 	}

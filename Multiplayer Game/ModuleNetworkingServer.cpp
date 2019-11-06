@@ -38,7 +38,10 @@ void ModuleNetworkingServer::onStart()
 
 	state = ServerState::Listening;
 
+	// Start timers
 	sendPingTimer.Start();
+	sendReplicationTimer.Start();
+
 }
 
 void ModuleNetworkingServer::onGui()
@@ -209,6 +212,9 @@ void ModuleNetworkingServer::onUpdate()
 
 		// Send ping to all clients periodically
 		manageSendPing();
+
+		// Send replication to all clients periodically
+		manageSendReplication();
 	}
 }
 
@@ -428,6 +434,21 @@ void ModuleNetworkingServer::updateNetworkObject(GameObject * gameObject)
 			clientProxies[i].replicationManager.update(gameObject->networkId);
 		}
 	}
+}
+
+void ModuleNetworkingServer::manageSendReplication() {
+	if (sendReplicationTimer.ReadSeconds() > replicationDeliveryIntervalSeconds) {
+		for (int i = 0; i < MAX_CLIENTS; ++i) {
+			if (clientProxies[i].connected) {
+				OutputMemoryStream packet;
+				clientProxies[i].replicationManager.write(packet);
+				sendPacket(packet, clientProxies[i].address);
+			}
+		}
+
+		sendReplicationTimer.Start();
+	}
+
 }
 
 void ModuleNetworkingServer::manageReceivePing(ClientProxy * clientProxy) {

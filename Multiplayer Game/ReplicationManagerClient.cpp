@@ -1,7 +1,7 @@
 #include "Networks.h"
 #include "ReplicationManagerClient.h"
 
-void ReplicationManagerClient::read(InputMemoryStream & packet) {
+void ReplicationManagerClient::read(const InputMemoryStream & packet) {
 	
 	// Iterate serialized list and execute actions.
 
@@ -23,7 +23,7 @@ void ReplicationManagerClient::read(InputMemoryStream & packet) {
 			case ReplicationAction::UPDATE:
 			{
 				GameObject* object = App->modLinkingContext->getNetworkGameObject(networkID);
-				float x = 0; float y = 0; float angle;
+				float x = 0; float y = 0; float angle = 0;
 				packet >> x; packet >> y;
 				packet >> angle;
 				object->position.x = x; object->position.y = y;
@@ -44,7 +44,7 @@ void ReplicationManagerClient::read(InputMemoryStream & packet) {
 	}
 }
 
-void ReplicationManagerClient::spawnObject(ObjectType tag) {
+void ReplicationManagerClient::spawnObject(int tag) {
 	switch (tag) {
 		case ObjectType::SPACESHIP:
 		{
