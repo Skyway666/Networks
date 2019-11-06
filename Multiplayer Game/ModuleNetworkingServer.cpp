@@ -225,6 +225,7 @@ void ModuleNetworkingServer::onConnectionReset(const sockaddr_in & fromAddress)
 			if (clientProxies[i].connected && proxy->clientId != clientProxies[i].clientId)
 			{
 				// TODO(jesus): Notify this proxy's replication manager about the destruction of this player's game object
+				clientProxies[i].replicationManager.destroy(proxy->gameObject->networkId);
 			}
 		}
 
@@ -340,6 +341,9 @@ GameObject * ModuleNetworkingServer::spawnPlayer(ClientProxy &clientProxy, uint8
 	clientProxy.gameObject->behaviour = new Spaceship;
 	clientProxy.gameObject->behaviour->gameObject = clientProxy.gameObject;
 
+	// Assign tag
+	clientProxy.gameObject->tag = ObjectType::SPACESHIP;
+
 	// Assign a new network identity to the object
 	App->modLinkingContext->registerNetworkGameObject(clientProxy.gameObject);
 
@@ -349,6 +353,7 @@ GameObject * ModuleNetworkingServer::spawnPlayer(ClientProxy &clientProxy, uint8
 		if (clientProxies[i].connected)
 		{
 			// TODO(jesus): Notify this proxy's replication manager about the creation of this game object
+			clientProxies[i].replicationManager.create(clientProxy.gameObject->networkId);
 		}
 	}
 
@@ -369,6 +374,9 @@ GameObject * ModuleNetworkingServer::spawnBullet(GameObject *parent)
 	gameObject->behaviour = new Laser;
 	gameObject->behaviour->gameObject = gameObject;
 
+	// Assign tag
+	gameObject->tag = ObjectType::LASER;
+
 	// Assign a new network identity to the object
 	App->modLinkingContext->registerNetworkGameObject(gameObject);
 
@@ -378,6 +386,7 @@ GameObject * ModuleNetworkingServer::spawnBullet(GameObject *parent)
 		if (clientProxies[i].connected)
 		{
 			// TODO(jesus): Notify this proxy's replication manager about the creation of this game object
+			clientProxies[i].replicationManager.create(gameObject->networkId);
 		}
 	}
 
@@ -397,6 +406,7 @@ void ModuleNetworkingServer::destroyNetworkObject(GameObject * gameObject)
 		if (clientProxies[i].connected)
 		{
 			// TODO(jesus): Notify this proxy's replication manager about the destruction of this game object
+			clientProxies[i].replicationManager.destroy(gameObject->networkId);
 		}
 	}
 
@@ -415,6 +425,7 @@ void ModuleNetworkingServer::updateNetworkObject(GameObject * gameObject)
 		if (clientProxies[i].connected)
 		{
 			// TODO(jesus): Notify this proxy's replication manager about the update of this game object
+			clientProxies[i].replicationManager.update(gameObject->networkId);
 		}
 	}
 }

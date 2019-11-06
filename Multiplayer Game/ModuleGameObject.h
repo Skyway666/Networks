@@ -1,5 +1,9 @@
 #pragma once
-
+enum ObjectType {
+	EMPTY,
+	LASER,
+	SPACESHIP
+};
 struct GameObject
 {
 	// Transform component
