@@ -21,9 +21,9 @@ private:
 
 	bool	running = false;
 	bool	reset = false;
-	int	started_at;
-	int	stopped_at;
-	int time_paused;
+	float	started_at;
+	float	stopped_at;
+	float   time_paused;
 };
 
 #endif //__TIMER_H__
