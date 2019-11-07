@@ -17,6 +17,9 @@ public:
 
 
 
+	void spawnPlayer();
+	void spawnBullet();
+
 private:
 
 	//////////////////////////////////////////////////////////////////////
@@ -90,5 +93,7 @@ private:
 
 	// Replication
 	ReplicationManagerClient replicationClient;
+
+
 };
 

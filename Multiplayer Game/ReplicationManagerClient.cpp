@@ -15,7 +15,7 @@ void ReplicationManagerClient::read(const InputMemoryStream & packet) {
 			case ReplicationAction::CREATE:
 			{
 				// Introduce tag to know which object to create
-				ObjectType tag = ObjectType::EMPTY;
+				uint32 tag = ObjectType::EMPTY;
 				packet >> tag;
 				spawnObject(tag);
 				break;
@@ -28,7 +28,7 @@ void ReplicationManagerClient::read(const InputMemoryStream & packet) {
 				packet >> angle;
 				object->position.x = x; object->position.y = y;
 				object->angle = angle;
-				// SkyTODO: Make functions for easier serialization
+				// Lucas(TODO): Make functions for easier serialization
 
 				break;
 			}
@@ -48,6 +48,7 @@ void ReplicationManagerClient::spawnObject(int tag) {
 	switch (tag) {
 		case ObjectType::SPACESHIP:
 		{
+			App->modNetClient->spawnPlayer();
 			break;
 		}
 		case ObjectType::LASER: 

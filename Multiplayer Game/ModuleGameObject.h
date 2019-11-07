@@ -32,7 +32,7 @@ struct GameObject
 	State state = NON_EXISTING;
 
 	// Tag for custom usage
-	uint32 tag = 0;
+	uint32 tag = ObjectType::EMPTY;
 	
 private:
 

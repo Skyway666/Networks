@@ -17,7 +17,7 @@ struct Spaceship : public Behaviour
 {
 	void start() override
 	{
-		gameObject->tag = (uint32)(Random.next() * UINT_MAX);
+
 	}
 
 	void onInput(const InputController &input) override

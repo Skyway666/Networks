@@ -1,4 +1,5 @@
 #include "Networks.h"
+#include "ModuleNetworkingClient.h"
 
 
 
@@ -255,4 +256,34 @@ void ModuleNetworkingClient::managePing(sockaddr_in otherAddress) {
 		sendPingTimer.Start();
 	}
 
+}
+
+void ModuleNetworkingClient::spawnPlayer() {
+	GameObject* gameObject = Instantiate();
+	gameObject->size = { 100, 100 };
+	gameObject->angle = 45.0f;
+
+	// Lucas(TODO): Send spaceship type
+	//if (spaceshipType == 0) {
+	gameObject->texture = App->modResources->spacecraft1;
+	/*}
+	else if (spaceshipType == 1) {
+		clientProxy.gameObject->texture = App->modResources->spacecraft2;
+	}
+	else {
+		clientProxy.gameObject->texture = App->modResources->spacecraft3;
+	}*/
+
+	// No collider needed
+
+	// No behaviour needed
+
+	// Assign tag
+	gameObject->tag = ObjectType::SPACESHIP;
+
+	// Assign a new network identity to the object
+	App->modLinkingContext->registerNetworkGameObject(gameObject);
+}
+
+void ModuleNetworkingClient::spawnBullet() {
 }
