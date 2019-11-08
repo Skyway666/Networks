@@ -1,3 +1,7 @@
+
+
+
+
 // Input handling
 var search_bar = document.getElementById("search_bar")
 var finished_requests = 0
@@ -59,7 +63,7 @@ locations_request.onload = function() {
 
 // This functions will fill variables
 function getIncidents(filter){
-  var request = "http://localhost:3000/api/v1/incident?perpage=10000";
+  var request = "http://localhost:3000/api/v1/incident";
   if(filter.length > 0){
   request = "http://localhost:3000/api/v1/incident?sort=employee&search="
   request = request.concat(filter)
@@ -158,12 +162,26 @@ function update(){
     createTableData()
     drawTable()
   }
-
+  
+  //app.tableData = tableData
   window.requestAnimationFrame(update)
 }
 
 
 // What is executed once
 window.requestAnimationFrame(update)
+
+
+
+// VUE TESTING
+
+var app = new Vue({
+  // Vue variables... i guess+
+  el: '#table',
+  data:{
+    tableData: tableData
+  }
+})
+
 
 //https://www.taniarascia.com/how-to-connect-to-an-api-with-javascript/ thanks girl
