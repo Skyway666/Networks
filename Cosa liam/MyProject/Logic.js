@@ -7,10 +7,10 @@ var search_bar = document.getElementById("search_bar")
 var filter_criteria = 0
 var filter_criterias =["employee", "datecreated", "location", "injurytype"]
 var ordering_criterias = ["desc","asc"] 
-var ordering_criteria = 0
+var ordering_criteria = 1
 
 // Data from querys vars
-var incidents = {} // Contains all the id's
+var incidents = [] // Contains all the id's
 
 var employees = [] // All employees THAT EXIST
 var injury_types = [] //All injuries THAT EXIST
@@ -18,6 +18,11 @@ var locations = [] // All locations THAT EXIST
 var bodyParts = [] // All body parts THAT EXIST
 
 var tableData = []
+
+// Pagination
+
+var current_page = 1
+var total_pages = 0
 
 // VUE 
 
@@ -33,7 +38,9 @@ var filterDynamic = new Vue({
   el: '#search_criteria',
   data:{
     filter_criteria: filter_criterias[filter_criteria],
-    ordering_criteria: ordering_criterias[ordering_criteria]
+    ordering_criteria: ordering_criterias[ordering_criteria],
+    current_page : current_page,
+    total_pages: total_pages
   }
 })
 
@@ -49,6 +56,8 @@ var bodyParts_request = new XMLHttpRequest()
 
 incidents_request.onload = function() {
   incidents = JSON.parse(this.response)
+  total_pages = this.getResponseHeader("Page-Count") // Pages for pagination
+  filterDynamic.total_pages = total_pages
   finished_requests += 1
 }
 
@@ -85,8 +94,7 @@ function getIncidents(filter, filter_crit, ordering_crit){
   request = request.concat(filter)
   request = request.concat("&sort=" + filter_crit)
   request = request.concat("&sortdir=" + ordering_crit)
-
-  console.log(request)
+  request = request.concat("&page=" + current_page)
 
   incidents_request.open('GET', request , true)
   incidents_request.send()
@@ -134,6 +142,22 @@ function changeOrdering(){
   makeQuery()
 }
 
+function changePageForward(){
+  changePage("forward")
+}
+function changePageBackwards(){
+  changePage("backwards")
+}
+
+function changePage(direction){
+  if(direction == "forward" && current_page != total_pages) 
+    current_page++
+  else if(direction == "backwards" && current_page != 1) 
+    current_page--
+
+  filterDynamic.current_page = current_page
+  makeQuery();
+}
 
 
 // This functions will use variables to confortably fill the tableData

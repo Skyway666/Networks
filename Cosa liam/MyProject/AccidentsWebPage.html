@@ -19,7 +19,16 @@
     <button  onclick="changeFilter()">Change Sort</button>
     <button onclick="changeOrdering()">Change Ordering</button>
     <p> Sort by {{filter_criteria}}, {{ordering_criteria}} </p>
+
+    <div></div>
+
+    <button  onclick="changePageBackwards()">Previous Page</button>
+    <span> Current page: {{current_page}} / {{total_pages}}</span>
+    <button onclick="changePageForward()">Next Page</button>
+
 </div>
+
+
 
 
 <table id="table" style="width:100%">
