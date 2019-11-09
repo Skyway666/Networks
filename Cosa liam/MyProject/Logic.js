@@ -80,14 +80,14 @@ function makeQuery(){
 
 // This functions will fill variables
 function getIncidents(filter, filter_crit, ordering_crit){
-  var request = "http://localhost:3000/api/v1/incident";
-  if(filter.length > 0){
+
   request = "http://localhost:3000/api/v1/incident?search="
   request = request.concat(filter)
   request = request.concat("&sort=" + filter_crit)
   request = request.concat("&sortdir=" + ordering_crit)
-  }
-  
+
+  console.log(request)
+
   incidents_request.open('GET', request , true)
   incidents_request.send()
 }

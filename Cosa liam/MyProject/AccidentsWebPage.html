@@ -13,12 +13,12 @@
 <div></div>
 
 <input id="search_bar" type="text" v-bind:placeholder="filter_criteria" oninput="makeQuery()"></input>
-<button  onclick="changeFilter()">Change Filter</button>
+
 
 <div id="search_criteria">
-    <p> Filter by {{filter_criteria}} </p>
+    <button  onclick="changeFilter()">Change Sort</button>
     <button onclick="changeOrdering()">Change Ordering</button>
-    <p> Order by {{ordering_criteria}} </p>
+    <p> Sort by {{filter_criteria}}, {{ordering_criteria}} </p>
 </div>
 
 
