@@ -6,12 +6,15 @@
 var search_bar = document.getElementById("search_bar")
 
 //enum
-var search_criteria = "employee" // "datecreated", "location", "injurytype"
+var filter_criteria = 0
+var filter_criterias =["employee", "datecreated", "location", "injurytype"]
 //enum
-var ordering = "desc" // "asc"
+var ordering_criterias = ["desc","asc"] 
+var ordering_criteria = 0
+
 var finished_requests = 0
 
-function onSearchBar(){
+function makeQuery(){
 
   // Clean arrays
 
@@ -23,13 +26,34 @@ function onSearchBar(){
 
   // Make a request to the API
     
-   getIncidents(search_bar.value, search_criteria, ordering)
+   getIncidents(search_bar.value, filter_criterias[filter_criteria], ordering_criterias[ordering_criteria])
    // TODO: Optimization- If the arrays are already ordered in a descending way, no need to get them again
    getEmployees()
    getInjuryTypes()
    getLocations()
    getBodyParts()
   
+}
+
+function changeFilter(){
+  
+  filter_criteria += 1
+  if(filter_criteria > 3) filter_criteria = 0
+
+  filterDynamic.filter_criteria = filter_criterias[filter_criteria]
+
+  makeQuery()
+
+}
+
+function changeOrdering(){
+
+  ordering_criteria += 1
+  if(ordering_criteria > 1) ordering_criteria = 0
+
+  filterDynamic.ordering_criteria = ordering_criterias[ordering_criteria]
+
+  makeQuery()
 }
 
 
@@ -77,12 +101,16 @@ bodyParts_request.onload = function(){
 
 
 // This functions will fill variables
-function getIncidents(filter){
+function getIncidents(filter, filter_crit, ordering_crit){
   var request = "http://localhost:3000/api/v1/incident";
   if(filter.length > 0){
-  request = "http://localhost:3000/api/v1/incident?sort=employee&search="
+  request = "http://localhost:3000/api/v1/incident?search="
   request = request.concat(filter)
+  request = request.concat("&sort=" + filter_crit)
+  request = request.concat("&sortdir=" + ordering_crit)
   }
+
+  console.log(request)
   incidents_request.open('GET', request , true)
   incidents_request.send()
 }
@@ -118,6 +146,8 @@ function createTableData(){
 
     tableData.push(data)
     });
+
+    tableDynamic.tableData = tableData
 }
 
 function getDataById(array, id){
@@ -135,16 +165,14 @@ function getDataById(array, id){
 
 //Start :)
 
-onSearchBar()
+makeQuery()
 
 function update(){
   if(finished_requests == 5){
     finished_requests = 0
     createTableData()
-    //drawTable()
   }
-  
-  app.tableData = tableData
+
   window.requestAnimationFrame(update)
 }
 
@@ -156,13 +184,22 @@ window.requestAnimationFrame(update)
 
 // VUE TESTING
 
-var app = new Vue({
+var tableDynamic = new Vue({
   // Vue variables... i guess+
   el: '#table',
   data:{
     tableData: tableData
   }
 })
+
+var filterDynamic = new Vue({
+  el: '#search_criteria',
+  data:{
+    filter_criteria: filter_criterias[filter_criteria],
+    ordering_criteria: ordering_criterias[ordering_criteria]
+  }
+})
+
 
 
 //https://www.taniarascia.com/how-to-connect-to-an-api-with-javascript/ thanks girl
