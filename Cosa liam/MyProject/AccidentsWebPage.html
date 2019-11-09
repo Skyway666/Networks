@@ -17,32 +17,25 @@
 <input id="search_bar" type="text" placeholder="Search.." oninput="onSearchBar()">
 
 
-<!--
-<div id="table" style="width: 100%; display: table">
-    <div id="Names" style="display: table-cell">
-        <font size="20">Stuff</font>
-        {{ tableData }}
-    </div>
-</div>
+<table id="table" style="width:100%">
+    <tr>
+        <th><font size="6">Created</font></th>
+        <th><font size="6">Full Name</font></th>
+        <th><font size="6">Injury Type</font></th>
+        <th><font size="6">Location</font></th>
+        <th><font size="6">Body Parts</font></th>
+    </tr>
+    <tr v-for="data in tableData">
+        <th> {{data.date}}</th>
+        <th> {{data.employee}}</th>
+        <th> {{data.injury_type}}</th>
+        <th> {{data.location}}</th>
+        <th> {{data.bodyParts}}</th>
+    </tr>
+
+</table>
 
 <script src="vue/vue.js"></script>
-
-
-
-
-
-UNCOMMENT DRAW TABLE TO USE THIS-->
-<div style="width: 100%; display: table">
-    <div style="display: table-row">
-            <div id="Names" style="display: table-cell">
-            </div>
-            <div id="Injurys" style="display: table-cell">
-            </div>
-    </div>
- 
-
-    <script src="Logic.js"></script>
-</div>
-
+<script src="Logic.js"></script>
 
 
