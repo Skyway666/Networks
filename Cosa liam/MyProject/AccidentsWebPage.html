@@ -9,28 +9,19 @@
 
                 padding: 5px 10px;
                 text-align: center;
-                text-decoration: none;
                 display: inline-block;
                 font-size: 15px;
                 
 
                 transition-duration: 0.4s;
             }
-            #sort{
-                background-color: blue; /* Green */
-                color:white
-            }
-            #order{
-                background-color: red; /* Green */
-                color:white
-            }
-            #sort:hover{
-                background-color: black; /* Green */
-                color: white
-            }
-            #order:hover{
-                background-color: black; /* Green */
-                color: white
+
+            .headerButton{
+                color: rgb(254,254,180);
+                background-color: rgb(194,110,92);
+                font-family:sans-serif;
+                font-weight: bold;
+                font-size: 30px
             }
             #page_nav{
                 border-radius: 0%;
@@ -78,6 +69,14 @@
                 font-size: 20px;
                 line-height: 0px
             }
+            select {
+                width: 10%;
+                padding: 5px 10px;
+                font-size: 20px;
+                border: none;
+                border-radius: 4px;
+                background-color: #f1f1f1;
+            }
 
         </style>
     </head>
@@ -97,19 +96,27 @@
 <p class="SearchBar">
     <font size="7" >Search</font>
     <br>
-    <input id="search_bar" type="text" placeholder="Employee, Location, Injury type" oninput="onSearchBar()"></input>
+    <input id="search_bar" type="text" placeholder="Employee, Location, Injury type" oninput="onNewFilter()"></input>
+</p>
+<p>
+    <font size="7" >Sort</font>
+    <br>
+    <select id="sort" onchange="onNewFilter()">
+        <option>Employee</option>
+        <option>Created</option>
+        <option>Location</option>
+        <option>Injury Type</option>
+    </select>
+    <select id="sortdir" onchange="onNewFilter()">
+        <option>Descending</option>
+        <option>Ascending</option>
+    </select>
 </p>
 
 <div id="search_criteria">
-        <button  onclick="changeFilter()" id="sort">Change Sort</button>
-        <button onclick="changeOrdering()" id="order">Change Ordering</button>
-        <p> Sort by <span style="color:blue">{{filter_criteria}}</span>, <span style="color:red">{{ordering_criteria}}</span> </p>
-    
-        <div></div>
-    
-        <button  onclick="changePageBackwards()" id="page_nav">Previous Page</button>
+        <button  onclick="changePageBackwards()" id="page_nav"><font size="4px"> < </font></button>
         <span> Current page: {{current_page}} / {{total_pages}}</span>
-        <button onclick="changePageForward()" id="page_nav">Next Page</button>
+        <button onclick="changePageForward()" id="page_nav"><font size="4px"> > </font></button>
     
 </div>
     
@@ -119,7 +126,7 @@
 
 <table id="table" style="width:100%">
     <tr>
-        <th><font size="6" >Created</font></th>
+        <th><font size="6">Created</font></button></th>
         <th><font size="6">Full Name</font></th>
         <th><font size="6">Injury Type</font></th>
         <th><font size="6">Location</font></th>

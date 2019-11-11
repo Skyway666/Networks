@@ -2,12 +2,12 @@
 
 // Input handling
 var search_bar = document.getElementById("search_bar")
+var sort_dropdown = document.getElementById("sort")
+var sortdir_dropdown = document.getElementById("sortdir")
 
 // Filter and order vars
-var filter_criteria = 0
 var filter_criterias =["employee", "datecreated", "location", "injurytype"]
 var ordering_criterias = ["desc","asc"] 
-var ordering_criteria = 1
 
 // Data from querys vars
 var incidents = [] // Contains all the id's
@@ -37,8 +37,6 @@ var tableDynamic = new Vue({
 var filterDynamic = new Vue({
   el: '#search_criteria',
   data:{
-    filter_criteria: filter_criterias[filter_criteria],
-    ordering_criteria: ordering_criterias[ordering_criteria],
     current_page : current_page,
     total_pages: total_pages
   }
@@ -82,14 +80,14 @@ bodyParts_request.onload = function(){
 
 // search_bar -> oninput=
 
-function onSearchBar(){
+function onNewFilter(){
   current_page = 1
   filterDynamic.current_page = current_page
   makeQuery()
 }
 function makeQuery(){
   // Make a request to the API
-   getIncidents(search_bar.value, filter_criterias[filter_criteria], ordering_criterias[ordering_criteria])
+   getIncidents(search_bar.value, filter_criterias[sort_dropdown.selectedIndex], ordering_criterias[sortdir_dropdown.selectedIndex])
 }
 
 
@@ -121,31 +119,6 @@ function getLocations(){
 function getBodyParts(){
   bodyParts_request.open('GET', 'http://localhost:3000/api/v1/bodyPart', true)
   bodyParts_request.send()
-}
-
-
-
-// filter_button -> onclick=
-function changeFilter(){
-  
-  filter_criteria += 1
-  if(filter_criteria > 3) filter_criteria = 0
-
-  filterDynamic.filter_criteria = filter_criterias[filter_criteria]
-
-  makeQuery()
-
-}
-
-// ordering_button -> onclick=
-function changeOrdering(){
-
-  ordering_criteria += 1
-  if(ordering_criteria > 1) ordering_criteria = 0
-
-  filterDynamic.ordering_criteria = ordering_criterias[ordering_criteria]
-
-  makeQuery()
 }
 
 function changePageForward(){
