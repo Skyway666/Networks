@@ -46,6 +46,7 @@
             }
             table {
                 border-collapse: collapse;
+                text-align: center
             }
             table, th, td {
                 border: 1px solid black;
@@ -74,7 +75,8 @@
             .SearchBar input {
                 height: 30px;
                 width: 300px;
-                font-size: 20px
+                font-size: 20px;
+                line-height: 0px
             }
 
         </style>
@@ -90,23 +92,30 @@
 
 <hr width=400>
 
-<p><font size="7px">Search</font></p>
-<div class="SearchBar">
+
+
+<p class="SearchBar">
+    <font size="7" >Search</font>
+    <br>
     <input id="search_bar" type="text" placeholder="Employee, Location, Injury type" oninput="onSearchBar()"></input>
-</div>
+</p>
 
 <div id="search_criteria">
-    <button  onclick="changeFilter()" id="sort">Change Sort</button>
-    <button onclick="changeOrdering()" id="order">Change Ordering</button>
-    <p> Sort by <span style="color:blue">{{filter_criteria}}</span>, <span style="color:red">{{ordering_criteria}}</span> </p>
-
-    <div></div>
-
-    <button  onclick="changePageBackwards()" id="page_nav">Previous Page</button>
-    <span> Current page: {{current_page}} / {{total_pages}}</span>
-    <button onclick="changePageForward()" id="page_nav">Next Page</button>
-
+        <button  onclick="changeFilter()" id="sort">Change Sort</button>
+        <button onclick="changeOrdering()" id="order">Change Ordering</button>
+        <p> Sort by <span style="color:blue">{{filter_criteria}}</span>, <span style="color:red">{{ordering_criteria}}</span> </p>
+    
+        <div></div>
+    
+        <button  onclick="changePageBackwards()" id="page_nav">Previous Page</button>
+        <span> Current page: {{current_page}} / {{total_pages}}</span>
+        <button onclick="changePageForward()" id="page_nav">Next Page</button>
+    
 </div>
+    
+
+
+
 
 <table id="table" style="width:100%">
     <tr>
