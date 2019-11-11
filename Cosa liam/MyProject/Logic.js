@@ -81,6 +81,12 @@ bodyParts_request.onload = function(){
 
 
 // search_bar -> oninput=
+
+function onSearchBar(){
+  current_page = 1
+  filterDynamic.current_page = current_page
+  makeQuery()
+}
 function makeQuery(){
   // Make a request to the API
    getIncidents(search_bar.value, filter_criterias[filter_criteria], ordering_criterias[ordering_criteria])
