@@ -25,7 +25,7 @@
             }
             #page_nav{
                 border-radius: 0%;
-                background-color: black; /* Blue */
+                background-color: rgb(131, 72, 58); /* Blue */
                 color: white
             }
             #page_nav:hover{
@@ -113,17 +113,13 @@
     </select>
 </p>
 
-<div id="search_criteria">
+<div id="search_criteria" >
         <button  onclick="changePageBackwards()" id="page_nav"><font size="4px"> < </font></button>
         <span> Current page: {{current_page}} / {{total_pages}}</span>
         <button onclick="changePageForward()" id="page_nav"><font size="4px"> > </font></button>
     
 </div>
     
-
-
-
-
 <table id="table" style="width:100%">
     <tr>
         <th><font size="6">Created</font></button></th>
