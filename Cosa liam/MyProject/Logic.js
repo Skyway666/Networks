@@ -173,7 +173,7 @@ function createTableData(){
 
   incidents.forEach(incident => {
     var data = {}
-    data.date = incident.dateCreated
+    data.date = extractDate(incident.dateCreated)
     data.employee = getDataById(employees, incident.employeeId).fullName
     data.injury_type = getDataById(injury_types, incident.injuryTypeId).name
     data.location = getDataById(locations, incident.locationId).name
@@ -200,6 +200,12 @@ function getDataById(array, id){
     }
   })
   return ret
+}
+
+function extractDate(date_string){
+  var index = date_string.indexOf("T")
+  return date_string.slice(0, index)
+
 }
 
 
